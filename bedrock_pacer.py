@@ -1,62 +1,77 @@
-# bedrock_pacer.py
-# Simple safe script to open Bedrock Learning in your browser on a schedule.
-# It does NOT fill in answers or scrape content. Use this to remind/pace yourself.
+import tkinter as tk
+from tkinter import ttk, messagebox
 
-import webbrowser
-import time
-import datetime
-import sys
+class FishingHelperApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
 
-# CONFIG
-BEDROCK_URL = "https://www.bedrocklearning.org/"   # change if needed
-SESSIONS_PER_DAY = 2        # how many times to open site per day
-SESSION_INTERVAL_MIN = 30   # if you want repeated opens in one run (minutes)
-INITIAL_DELAY_SEC = 5       # seconds before the first open (gives you time to alt-tab)
+        self.title("🎣 Fishing Helper")
+        self.geometry("600x400")
+        self.configure(bg="#e6f2ff")
 
-# Simple usage modes:
-# 1) single run with repeated opens: runs SESSIONS_PER_DAY times waiting SESSION_INTERVAL_MIN minutes between.
-# 2) daily loop mode: runs forever once each day at the times you choose (basic example below).
+        # Title Label
+        title = tk.Label(self, text="Fishing Helper App", font=("Arial", 20, "bold"), bg="#e6f2ff", fg="#004080")
+        title.pack(pady=10)
 
-def open_with_message(url):
-    print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Opening {url}")
-    webbrowser.open(url, new=2)  # new=2 -> open in a new tab, if possible
+        # Tabs
+        tab_control = ttk.Notebook(self)
 
-def paced_run():
-    print("Starting paced run. Press Ctrl+C to stop.")
-    time.sleep(INITIAL_DELAY_SEC)
-    for i in range(SESSIONS_PER_DAY):
-        open_with_message(BEDROCK_URL)
-        if i < SESSIONS_PER_DAY - 1:
-            print(f"Waiting {SESSION_INTERVAL_MIN} minutes until next session...")
-            time.sleep(SESSION_INTERVAL_MIN * 60)
-    print("Paced run finished.")
+        self.log_tab = ttk.Frame(tab_control)
+        self.weather_tab = ttk.Frame(tab_control)
+        self.stats_tab = ttk.Frame(tab_control)
 
-def daily_loop(target_hours):
-    """
-    target_hours: list of hours (24h ints) at which to open the site daily, e.g. [16, 19] -> 4pm and 7pm
-    """
-    print("Starting daily loop. Press Ctrl+C to stop.")
-    while True:
-        now = datetime.datetime.now()
-        for h in target_hours:
-            target_dt = now.replace(hour=h, minute=0, second=0, microsecond=0)
-            if target_dt < now:
-                target_dt += datetime.timedelta(days=1)
-            wait_seconds = (target_dt - now).total_seconds()
-            print(f"Next auto-open scheduled at {target_dt.strftime('%Y-%m-%d %H:%M:%S')} (in {int(wait_seconds//60)} min).")
-            time.sleep(wait_seconds)
-            open_with_message(BEDROCK_URL)
-        # small sleep to avoid tight loop in case target_hours empty
-        time.sleep(60)
+        tab_control.add(self.log_tab, text="Log Catch")
+        tab_control.add(self.weather_tab, text="Weather")
+        tab_control.add(self.stats_tab, text="Stats")
+        tab_control.pack(expand=1, fill="both")
+
+        # Build Tabs
+        self.build_log_tab()
+        self.build_weather_tab()
+        self.build_stats_tab()
+
+    def build_log_tab(self):
+        # Labels and Entry fields
+        tk.Label(self.log_tab, text="Species:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        self.species_entry = tk.Entry(self.log_tab, width=30)
+        self.species_entry.grid(row=0, column=1, padx=10, pady=5)
+
+        tk.Label(self.log_tab, text="Weight (kg):").grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        self.weight_entry = tk.Entry(self.log_tab, width=30)
+        self.weight_entry.grid(row=1, column=1, padx=10, pady=5)
+
+        tk.Label(self.log_tab, text="Bait Used:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        self.bait_entry = tk.Entry(self.log_tab, width=30)
+        self.bait_entry.grid(row=2, column=1, padx=10, pady=5)
+
+        tk.Label(self.log_tab, text="Location:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        self.location_entry = tk.Entry(self.log_tab, width=30)
+        self.location_entry.grid(row=3, column=1, padx=10, pady=5)
+
+        tk.Button(self.log_tab, text="Save Catch", command=self.save_catch, bg="#004080", fg="white").grid(row=4, column=1, pady=10)
+
+    def build_weather_tab(self):
+        tk.Label(self.weather_tab, text="(Future Feature) Show local weather and tides here!", font=("Arial", 12)).pack(pady=20)
+
+    def build_stats_tab(self):
+        tk.Label(self.stats_tab, text="(Future Feature) Display fishing stats and charts here!", font=("Arial", 12)).pack(pady=20)
+
+    def save_catch(self):
+        species = self.species_entry.get()
+        weight = self.weight_entry.get()
+        bait = self.bait_entry.get()
+        location = self.location_entry.get()
+
+        if species and weight and bait and location:
+            messagebox.showinfo("Catch Saved", f"Logged: {species} ({weight}kg) using {bait} at {location}")
+            # Clear inputs
+            self.species_entry.delete(0, tk.END)
+            self.weight_entry.delete(0, tk.END)
+            self.bait_entry.delete(0, tk.END)
+            self.location_entry.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Missing Data", "Please fill in all fields!")
 
 if __name__ == "__main__":
-    # Simple CLI: run python bedrock_pacer.py paced  OR  python bedrock_pacer.py daily 16 19
-    if len(sys.argv) >= 2 and sys.argv[1] == "daily":
-        if len(sys.argv) < 3:
-            print("Usage: python bedrock_pacer.py daily <hour1> <hour2> ... (24-hour hours)")
-            sys.exit(1)
-        hours = [int(x) for x in sys.argv[2:]]
-        daily_loop(hours)
-    else:
-        # paced run (default)
-        paced_run()
+    app = FishingHelperApp()
+    app.mainloop()

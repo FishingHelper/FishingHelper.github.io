@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎣 Fishing Helper</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e6f2ff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #004080;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #cce0ff;
+      padding: 0.5rem;
+    }
+    nav button {
+      margin: 0 10px;
+      padding: 8px 15px;
+      border: none;
+      background: #004080;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    nav button:hover {
+      background: #0066cc;
+    }
+    .container {
+      padding: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .save-btn {
+      background: #004080;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .save-btn:hover {
+      background: #0066cc;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎣 Fishing Helper</h1>
+  </header>
+
+  <nav>
+    <button onclick="showTab('log')">Log Catch</button>
+    <button onclick="showTab('weather')">Weather</button>
+    <button onclick="showTab('stats')">Stats</button>
+  </nav>
+
+  <div class="container">
+    <!-- Log Catch -->
+    <div id="log" class="tab">
+      <h2>Log a Catch</h2>
+      <div class="form-group">
+        <label>Species:</label>
+        <input type="text" id="species">
+      </div>
+      <div class="form-group">
+        <label>Weight (kg):</label>
+        <input type="number" id="weight">
+      </div>
+      <div class="form-group">
+        <label>Bait Used:</label>
+        <input type="text" id="bait">
+      </div>
+      <div class="form-group">
+        <label>Location:</label>
+        <input type="text" id="location">
+      </div>
+      <button class="save-btn" onclick="saveCatch()">Save Catch</button>
+      <ul id="catchList"></ul>
+    </div>
+
+    <!-- Weather -->
+    <div id="weather" class="tab hidden">
+      <h2>Weather</h2>
+      <p>(Future feature: Show fishing weather & tides)</p>
+    </div>
+
+    <!-- Stats -->
+    <div id="stats" class="tab hidden">
+      <h2>Stats</h2>
+      <p>(Future feature: Charts of catches by species, bait, etc.)</p>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    function showTab(tabId) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+    }
+
+    // Save catch
+    function saveCatch() {
+      const species = document.getElementById('species').value;
+      const weight = document.getElementById('weight').value;
+      const bait = document.getElementById('bait').value;
+      const location = document.getElementById('location').value;
+
+      if (species && weight && bait && location) {
+        const li = document.createElement("li");
+        li.textContent = `${species} (${weight}kg) using ${bait} at ${location}`;
+        document.getElementById("catchList").appendChild(li);
+
+        // Clear inputs
+        document.getElementById('species').value = "";
+        document.getElementById('weight').value = "";
+        document.getElementById('bait').value = "";
+        document.getElementById('location').value = "";
+      } else {
+        alert("Please fill in all fields!");
+      }
+    }
+  </script>
+
+</body>
+</html>

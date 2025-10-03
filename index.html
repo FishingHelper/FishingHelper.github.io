@@ -38,6 +38,7 @@
       color: white;
       border-radius: 5px;
       cursor: pointer;
+      font-weight: bold;
     }
     nav button:hover {
       background: #0066cc;
@@ -81,6 +82,18 @@
       background: #004080;
       color: white;
     }
+    .homepage {
+      text-align: center;
+      padding: 30px;
+    }
+    .homepage h2 {
+      font-size: 28px;
+      color: #004080;
+    }
+    .homepage p {
+      font-size: 18px;
+      color: #004080;
+    }
   </style>
 </head>
 <body>
@@ -95,15 +108,24 @@
   </div>
 
   <nav>
+    <button onclick="showTab('home')">Home</button>
     <button onclick="showTab('log')">Log Catch</button>
     <button onclick="showTab('catches')">Catches</button>
     <button onclick="showTab('weather')">Weather</button>
-    <button onclick="showTab('stats')">Stats</button>
   </nav>
 
   <div class="container">
+    <!-- Homepage -->
+    <div id="home" class="tab">
+      <div class="homepage">
+        <h2>Welcome to Fishing Helper! 🎣</h2>
+        <p>Keep track of all your catches, view live weather, and plan your fishing trips!</p>
+        <p>Total Catches Logged: <span id="totalCatches">0</span></p>
+      </div>
+    </div>
+
     <!-- Log Catch -->
-    <div id="log" class="tab">
+    <div id="log" class="tab hidden">
       <h2>Log a Catch</h2>
       <div class="form-group">
         <label>Species:</label>
@@ -147,12 +169,6 @@
       <h2>Weather</h2>
       <p>(Future feature: Detailed fishing weather & tides)</p>
     </div>
-
-    <!-- Stats -->
-    <div id="stats" class="tab hidden">
-      <h2>Stats</h2>
-      <p>(Future feature: Charts of catches by species, bait, etc.)</p>
-    </div>
   </div>
 
   <script>
@@ -175,6 +191,7 @@
         localStorage.setItem('catches', JSON.stringify(catches));
 
         displayCatches();
+        updateTotalCatches();
 
         document.getElementById('species').value = '';
         document.getElementById('weight').value = '';
@@ -197,6 +214,12 @@
         row.innerHTML = `<td>${c.species}</td><td>${c.weight}</td><td>${c.bait}</td><td>${c.location}</td>`;
         tableBody.appendChild(row);
       });
+    }
+
+    // Update total catches on homepage
+    function updateTotalCatches() {
+      let catches = JSON.parse(localStorage.getItem('catches') || '[]');
+      document.getElementById('totalCatches').innerText = catches.length;
     }
 
     // Load Live Weather using Open-Meteo API
@@ -231,6 +254,7 @@
     // Initialize on page load
     window.onload = () => {
       displayCatches();
+      updateTotalCatches();
       loadWeather();
     };
   </script>

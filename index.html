@@ -5,287 +5,199 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🎣 Fishing Helper</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #e6f2ff;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #004080;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-    nav {
-      display: flex;
-      justify-content: center;
-      background: #cce0ff;
-      padding: 0.5rem;
-    }
-    nav button {
-      margin: 0 10px;
-      padding: 8px 15px;
-      border: none;
-      background: #004080;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    nav button:hover {
-      background: #0066cc;
-    }
-    .container {
-      padding: 20px;
-    }
-    .hidden {
-      display: none;
-    }
-    input {
-      padding: 8px;
-      margin: 5px 0;
-      width: 100%;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    .save-btn {
-      background: #004080;
-      color: white;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .save-btn:hover {
-      background: #0066cc;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #004080;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background: #004080;
-      color: white;
-    }
-    .homepage {
-      text-align: center;
-      padding: 30px;
-    }
-    .homepage h2 {
-      font-size: 28px;
-      color: #004080;
-    }
-    .homepage p {
-      font-size: 18px;
-      color: #004080;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
-    .stat-card {
-      background: #cce0ff;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      font-weight: bold;
-      color: #004080;
-    }
-    .stat-card p {
-      margin: 5px 0;
-      font-size: 14px;
-    }
+    body { font-family: Arial, sans-serif; background-color: #e6f2ff; margin:0; padding:0; }
+    header { background-color: #004080; color: white; padding: 1rem; text-align:center; }
+    nav { display:flex; justify-content:center; background:#cce0ff; padding:0.5rem; }
+    nav button { margin:0 10px; padding:8px 15px; border:none; background:#004080; color:white; border-radius:5px; cursor:pointer; font-weight:bold; }
+    nav button:hover { background:#0066cc; }
+    .container { padding:20px; }
+    .hidden { display:none; }
+    input { padding:8px; margin:5px 0; width:100%; }
+    .form-group { margin-bottom:15px; }
+    .save-btn { background:#004080; color:white; padding:10px; border:none; border-radius:5px; cursor:pointer; }
+    .save-btn:hover { background:#0066cc; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; }
+    th, td { border:1px solid #004080; padding:8px; text-align:center; }
+    th { background:#004080; color:white; }
+    .homepage { text-align:center; padding:30px; }
+    .homepage h2 { font-size:28px; color:#004080; }
+    .homepage p { font-size:18px; color:#004080; }
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:15px; margin-top:20px; }
+    .stat-card { background:#cce0ff; padding:15px; border-radius:10px; text-align:center; font-weight:bold; color:#004080; }
+    .stat-card p { margin:5px 0; font-size:14px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>🎣 Fishing Helper</h1>
-  </header>
+<header>
+  <h1>🎣 Fishing Helper</h1>
+</header>
 
-  <nav>
-    <button onclick="showTab('home')">Home</button>
-    <button onclick="showTab('log')">Log Catch</button>
-    <button onclick="showTab('catches')">Catches</button>
-    <button onclick="showTab('weather')">Weather & Stats</button>
-  </nav>
+<nav>
+  <button onclick="showTab('home')">Home</button>
+  <button onclick="showTab('log')">Log Catch</button>
+  <button onclick="showTab('catches')">Catches</button>
+  <button onclick="showTab('weather')">Weather & Stats</button>
+</nav>
 
-  <div class="container">
-    <!-- Homepage -->
-    <div id="home" class="tab">
-      <div class="homepage">
-        <h2>Welcome to Fishing Helper! 🎣</h2>
-        <p>Track all your catches and plan your fishing trips!</p>
-        <p>Total Catches Logged: <span id="totalCatches">0</span></p>
-      </div>
+<div class="container">
+
+  <!-- Homepage -->
+  <div id="home" class="tab">
+    <div class="homepage">
+      <h2>Welcome to Fishing Helper! 🎣</h2>
+      <p>Track all your catches and plan your fishing trips!</p>
+      <p>Total Catches Logged: <span id="totalCatches">0</span></p>
     </div>
-
-    <!-- Log Catch -->
-    <div id="log" class="tab hidden">
-      <h2>Log a Catch</h2>
-      <div class="form-group">
-        <label>Species:</label>
-        <input type="text" id="species">
-      </div>
-      <div class="form-group">
-        <label>Weight (kg):</label>
-        <input type="number" id="weight">
-      </div>
-      <div class="form-group">
-        <label>Bait Used:</label>
-        <input type="text" id="bait">
-      </div>
-      <div class="form-group">
-        <label>Location:</label>
-        <input type="text" id="location">
-      </div>
-      <button class="save-btn" onclick="saveCatch()">Save Catch</button>
-    </div>
-
-    <!-- Catches -->
-    <div id="catches" class="tab hidden">
-      <h2>All Catches</h2>
-      <table id="catchTable">
-        <thead>
-          <tr>
-            <th>Species</th>
-            <th>Weight (kg)</th>
-            <th>Bait</th>
-            <th>Location</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Weather & Stats -->
-    <div id="weather" class="tab hidden">
-      <h2>Weather & Fishing Stats</h2>
-      <div class="stats-grid">
-        <div class="stat-card">Temperature<p id="temp">Loading...</p></div>
-        <div class="stat-card">Wind Speed<p id="wind">Loading...</p></div>
-        <div class="stat-card">Wind Direction<p id="windDir">Loading...</p></div>
-        <div class="stat-card">Cloud Cover<p id="clouds">Loading...</p></div>
-        <div class="stat-card">Humidity<p id="humidity">Loading...</p></div>
-        <div class="stat-card">Barometric Pressure<p id="pressure">Loading...</p></div>
-        <div class="stat-card">Moon Phase<p id="moon">Loading...</p></div>
-        <div class="stat-card">Sunrise / Sunset<p id="sun">Loading...</p></div>
-        <div class="stat-card">Tide Info<p id="tide">High / Low placeholder</p></div>
-        <div class="stat-card">Fishing Suggestion<p id="tip">Loading...</p></div>
-        <div class="stat-card">Precipitation<p id="rain">Loading...</p></div>
-        <div class="stat-card">Day Length<p id="dayLength">Loading...</p></div>
-      </div>
-    </div>
-
   </div>
 
-  <script>
-    // Tab switching
-    function showTab(tabId) {
-      document.querySelectorAll('.tab').forEach(tab => tab.classList.add('hidden'));
-      document.getElementById(tabId).classList.remove('hidden');
-    }
+  <!-- Log Catch -->
+  <div id="log" class="tab hidden">
+    <h2>Log a Catch</h2>
+    <div class="form-group">
+      <label>Species:</label>
+      <input type="text" id="species">
+    </div>
+    <div class="form-group">
+      <label>Weight (kg):</label>
+      <input type="number" id="weight">
+    </div>
+    <div class="form-group">
+      <label>Bait Used:</label>
+      <input type="text" id="bait">
+    </div>
+    <div class="form-group">
+      <label>Location:</label>
+      <input type="text" id="location">
+    </div>
+    <button class="save-btn" onclick="saveCatch()">Save Catch</button>
+  </div>
 
-    // Save catch into localStorage
-    function saveCatch() {
-      const species = document.getElementById('species').value;
-      const weight = document.getElementById('weight').value;
-      const bait = document.getElementById('bait').value;
-      const location = document.getElementById('location').value;
+  <!-- Catches -->
+  <div id="catches" class="tab hidden">
+    <h2>All Catches</h2>
+    <table id="catchTable">
+      <thead>
+        <tr>
+          <th>Species</th>
+          <th>Weight (kg)</th>
+          <th>Bait</th>
+          <th>Location</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-      if (species && weight && bait && location) {
-        let catches = JSON.parse(localStorage.getItem('catches') || '[]');
-        catches.push({ species, weight, bait, location });
-        localStorage.setItem('catches', JSON.stringify(catches));
+  <!-- Weather & Stats -->
+  <div id="weather" class="tab hidden">
+    <h2>Weather & Fishing Stats</h2>
+    <div class="stats-grid">
+      <div class="stat-card">Temperature<p id="temp">Loading...</p></div>
+      <div class="stat-card">Wind Speed<p id="wind">Loading...</p></div>
+      <div class="stat-card">Wind Direction<p id="windDir">Loading...</p></div>
+      <div class="stat-card">Cloud Cover<p id="clouds">Loading...</p></div>
+      <div class="stat-card">Humidity<p id="humidity">Loading...</p></div>
+      <div class="stat-card">Pressure<p id="pressure">Loading...</p></div>
+      <div class="stat-card">Moon Phase<p id="moon">Loading...</p></div>
+      <div class="stat-card">Sunrise / Sunset<p id="sun">Loading...</p></div>
+      <div class="stat-card">Tide Info<p id="tide">High / Low placeholder</p></div>
+      <div class="stat-card">Fishing Suggestion<p id="tip">Loading...</p></div>
+      <div class="stat-card">Precipitation<p id="rain">Loading...</p></div>
+      <div class="stat-card">Day Length<p id="dayLength">Loading...</p></div>
+    </div>
+  </div>
 
-        displayCatches();
-        updateTotalCatches();
+</div>
 
-        document.getElementById('species').value = '';
-        document.getElementById('weight').value = '';
-        document.getElementById('bait').value = '';
-        document.getElementById('location').value = '';
+<script>
+  // Tab switching
+  function showTab(tabId){
+    document.querySelectorAll('.tab').forEach(tab=>tab.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+  }
 
-        showTab('catches');
-      } else {
-        alert("Please fill in all fields!");
-      }
-    }
-
-    // Display all catches
-    function displayCatches() {
-      const tableBody = document.querySelector("#catchTable tbody");
-      tableBody.innerHTML = '';
-      let catches = JSON.parse(localStorage.getItem('catches') || '[]');
-      catches.forEach(c => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${c.species}</td><td>${c.weight}</td><td>${c.bait}</td><td>${c.location}</td>`;
-        tableBody.appendChild(row);
-      });
-    }
-
-    // Update total catches on homepage
-    function updateTotalCatches() {
-      let catches = JSON.parse(localStorage.getItem('catches') || '[]');
-      document.getElementById('totalCatches').innerText = catches.length;
-    }
-
-    // Load weather & fishing stats
-    function loadWeather() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(success, error);
-      } else {
-        alert("Geolocation not supported.");
-      }
-
-      function success(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=cloudcover,humidity,pressure_msl,precipitation,windspeed_10m,winddirection_10m`)
-          .then(res => res.json())
-          .then(data => {
-            const w = data.current_weather;
-            document.getElementById('temp').innerText = w.temperature + "°C";
-            document.getElementById('wind').innerText = w.windspeed + " km/h";
-            document.getElementById('windDir').innerText = w.winddirection + "°";
-            document.getElementById('clouds').innerText = (data.hourly.cloudcover[0] || "N/A") + "%";
-            document.getElementById('humidity').innerText = (data.hourly.humidity[0] || "N/A") + "%";
-            document.getElementById('pressure').innerText = (data.hourly.pressure_msl[0] || "N/A") + " hPa";
-            document.getElementById('rain').innerText = (data.hourly.precipitation[0] || "0") + " mm";
-            
-            // Placeholder or calculated info
-            document.getElementById('moon').innerText = "Waxing Crescent";
-            document.getElementById('sun').innerText = "06:15 / 18:45";
-            document.getElementById('tide').innerText = "High: 14:00, Low: 20:00";
-            document.getElementById('tip').innerText = "Try using worms near shallow areas in morning.";
-            document.getElementById('dayLength').innerText = "12h 30m";
-          })
-          .catch(err => console.log(err));
-      }
-
-      function error() {
-        alert("Unable to get location.");
-      }
-    }
-
-    // Initialize
-    window.onload = () => {
+  // LocalStorage catch functions
+  function saveCatch(){
+    const species=document.getElementById('species').value;
+    const weight=document.getElementById('weight').value;
+    const bait=document.getElementById('bait').value;
+    const location=document.getElementById('location').value;
+    if(species && weight && bait && location){
+      let catches=JSON.parse(localStorage.getItem('catches')||'[]');
+      catches.push({species,weight,bait,location});
+      localStorage.setItem('catches',JSON.stringify(catches));
       displayCatches();
       updateTotalCatches();
-      loadWeather();
-    };
-  </script>
+      document.getElementById('species').value='';
+      document.getElementById('weight').value='';
+      document.getElementById('bait').value='';
+      document.getElementById('location').value='';
+      showTab('catches');
+    }else{
+      alert("Please fill in all fields!");
+    }
+  }
+
+  function displayCatches(){
+    const tableBody=document.querySelector("#catchTable tbody");
+    tableBody.innerHTML='';
+    let catches=JSON.parse(localStorage.getItem('catches')||'[]');
+    catches.forEach(c=>{
+      const row=document.createElement('tr');
+      row.innerHTML=`<td>${c.species}</td><td>${c.weight}</td><td>${c.bait}</td><td>${c.location}</td>`;
+      tableBody.appendChild(row);
+    });
+  }
+
+  function updateTotalCatches(){
+    let catches=JSON.parse(localStorage.getItem('catches')||'[]');
+    document.getElementById('totalCatches').innerText=catches.length;
+  }
+
+  // Weather & Stats
+  function loadWeather(){
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(success,error);
+    }else{
+      alert("Geolocation not supported.");
+    }
+    function success(pos){
+      const lat=pos.coords.latitude;
+      const lon=pos.coords.longitude;
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset,moon_phase,precipitation_sum&hourly=cloudcover,humidity,pressure_msl,windspeed_10m,winddirection_10m`)
+      .then(res=>res.json())
+      .then(data=>{
+        const w=data.current_weather;
+        // Temperature
+        document.getElementById('temp').innerText=w.temperature+"°C";
+        // Wind
+        document.getElementById('wind').innerText=w.windspeed+" km/h";
+        document.getElementById('windDir').innerText=w.winddirection+"°";
+        // Hourly fields with safe fallback
+        document.getElementById('clouds').innerText=(data.hourly.cloudcover?.[0]??"N/A")+"%";
+        document.getElementById('humidity').innerText=(data.hourly.humidity?.[0]??"N/A")+"%";
+        document.getElementById('pressure').innerText=(data.hourly.pressure_msl?.[0]??"N/A")+" hPa";
+        document.getElementById('rain').innerText=(data.daily.precipitation_sum?.[0]??0)+" mm";
+        document.getElementById('moon').innerText=data.daily.moon_phase?.[0]??"Waxing Crescent";
+        document.getElementById('sun').innerText=`${data.daily.sunrise?.[0]??"06:00"} / ${data.daily.sunset?.[0]??"18:00"}`;
+        document.getElementById('tide').innerText="High: 14:00, Low: 20:00"; // placeholder
+        document.getElementById('tip').innerText="Try using worms near shallow areas in morning.";
+        document.getElementById('dayLength').innerText="12h 30m"; // placeholder
+      })
+      .catch(err=>console.log(err));
+    }
+    function error(){
+      alert("Unable to get location.");
+    }
+  }
+
+  window.onload=()=>{
+    displayCatches();
+    updateTotalCatches();
+    loadWeather();
+  };
+</script>
 
 </body>
 </html>

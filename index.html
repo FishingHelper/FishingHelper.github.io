@@ -17,13 +17,6 @@
       padding: 1rem;
       text-align: center;
     }
-    #weatherStats {
-      background: #cce0ff;
-      padding: 10px;
-      text-align: center;
-      font-weight: bold;
-      font-size: 16px;
-    }
     nav {
       display: flex;
       justify-content: center;
@@ -94,6 +87,24 @@
       font-size: 18px;
       color: #004080;
     }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .stat-card {
+      background: #cce0ff;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: bold;
+      color: #004080;
+    }
+    .stat-card p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -102,16 +113,11 @@
     <h1>🎣 Fishing Helper</h1>
   </header>
 
-  <!-- Live Pro Weather Stats -->
-  <div id="weatherStats">
-    Loading Live Pro Weather Stats...
-  </div>
-
   <nav>
     <button onclick="showTab('home')">Home</button>
     <button onclick="showTab('log')">Log Catch</button>
     <button onclick="showTab('catches')">Catches</button>
-    <button onclick="showTab('weather')">Weather</button>
+    <button onclick="showTab('weather')">Weather & Stats</button>
   </nav>
 
   <div class="container">
@@ -119,7 +125,7 @@
     <div id="home" class="tab">
       <div class="homepage">
         <h2>Welcome to Fishing Helper! 🎣</h2>
-        <p>Keep track of all your catches, view live weather, and plan your fishing trips!</p>
+        <p>Track all your catches and plan your fishing trips!</p>
         <p>Total Catches Logged: <span id="totalCatches">0</span></p>
       </div>
     </div>
@@ -158,17 +164,29 @@
             <th>Location</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- Catches will appear here -->
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
 
-    <!-- Weather -->
+    <!-- Weather & Stats -->
     <div id="weather" class="tab hidden">
-      <h2>Weather</h2>
-      <p>(Future feature: Detailed fishing weather & tides)</p>
+      <h2>Weather & Fishing Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-card">Temperature<p id="temp">Loading...</p></div>
+        <div class="stat-card">Wind Speed<p id="wind">Loading...</p></div>
+        <div class="stat-card">Wind Direction<p id="windDir">Loading...</p></div>
+        <div class="stat-card">Cloud Cover<p id="clouds">Loading...</p></div>
+        <div class="stat-card">Humidity<p id="humidity">Loading...</p></div>
+        <div class="stat-card">Barometric Pressure<p id="pressure">Loading...</p></div>
+        <div class="stat-card">Moon Phase<p id="moon">Loading...</p></div>
+        <div class="stat-card">Sunrise / Sunset<p id="sun">Loading...</p></div>
+        <div class="stat-card">Tide Info<p id="tide">High / Low placeholder</p></div>
+        <div class="stat-card">Fishing Suggestion<p id="tip">Loading...</p></div>
+        <div class="stat-card">Precipitation<p id="rain">Loading...</p></div>
+        <div class="stat-card">Day Length<p id="dayLength">Loading...</p></div>
+      </div>
     </div>
+
   </div>
 
   <script>
@@ -222,36 +240,46 @@
       document.getElementById('totalCatches').innerText = catches.length;
     }
 
-    // Load Live Weather using Open-Meteo API
+    // Load weather & fishing stats
     function loadWeather() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(success, error);
       } else {
-        document.getElementById("weatherStats").innerText = "Geolocation not supported.";
+        alert("Geolocation not supported.");
       }
 
       function success(position) {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
 
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=cloudcover,humidity,pressure_msl,precipitation,windspeed_10m,winddirection_10m`)
           .then(res => res.json())
           .then(data => {
-            const weather = data.current_weather;
-            document.getElementById("weatherStats").innerText =
-              `🌡️ Temp: ${weather.temperature}°C | 💨 Wind: ${weather.windspeed} km/h | ⏱️ Condition: ${weather.weathercode}`;
+            const w = data.current_weather;
+            document.getElementById('temp').innerText = w.temperature + "°C";
+            document.getElementById('wind').innerText = w.windspeed + " km/h";
+            document.getElementById('windDir').innerText = w.winddirection + "°";
+            document.getElementById('clouds').innerText = (data.hourly.cloudcover[0] || "N/A") + "%";
+            document.getElementById('humidity').innerText = (data.hourly.humidity[0] || "N/A") + "%";
+            document.getElementById('pressure').innerText = (data.hourly.pressure_msl[0] || "N/A") + " hPa";
+            document.getElementById('rain').innerText = (data.hourly.precipitation[0] || "0") + " mm";
+            
+            // Placeholder or calculated info
+            document.getElementById('moon').innerText = "Waxing Crescent";
+            document.getElementById('sun').innerText = "06:15 / 18:45";
+            document.getElementById('tide').innerText = "High: 14:00, Low: 20:00";
+            document.getElementById('tip').innerText = "Try using worms near shallow areas in morning.";
+            document.getElementById('dayLength').innerText = "12h 30m";
           })
-          .catch(() => {
-            document.getElementById("weatherStats").innerText = "Weather data unavailable.";
-          });
+          .catch(err => console.log(err));
       }
 
       function error() {
-        document.getElementById("weatherStats").innerText = "Unable to get location.";
+        alert("Unable to get location.");
       }
     }
 
-    // Initialize on page load
+    // Initialize
     window.onload = () => {
       displayCatches();
       updateTotalCatches();

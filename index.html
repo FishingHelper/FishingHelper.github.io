@@ -17,6 +17,13 @@
       padding: 1rem;
       text-align: center;
     }
+    #weatherStats {
+      background: #cce0ff;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
     nav {
       display: flex;
       justify-content: center;
@@ -82,6 +89,11 @@
     <h1>🎣 Fishing Helper</h1>
   </header>
 
+  <!-- Live Pro Weather Stats -->
+  <div id="weatherStats">
+    Loading Live Pro Weather Stats...
+  </div>
+
   <nav>
     <button onclick="showTab('log')">Log Catch</button>
     <button onclick="showTab('catches')">Catches</button>
@@ -133,7 +145,7 @@
     <!-- Weather -->
     <div id="weather" class="tab hidden">
       <h2>Weather</h2>
-      <p>(Future feature: Show fishing weather & tides)</p>
+      <p>(Future feature: Detailed fishing weather & tides)</p>
     </div>
 
     <!-- Stats -->
@@ -150,7 +162,7 @@
       document.getElementById(tabId).classList.remove('hidden');
     }
 
-    // Save catch into the table
+    // Save catch into localStorage
     function saveCatch() {
       const species = document.getElementById('species').value;
       const weight = document.getElementById('weight').value;
@@ -158,30 +170,69 @@
       const location = document.getElementById('location').value;
 
       if (species && weight && bait && location) {
-        const tableBody = document.querySelector("#catchTable tbody");
-        const row = document.createElement("tr");
+        let catches = JSON.parse(localStorage.getItem('catches') || '[]');
+        catches.push({ species, weight, bait, location });
+        localStorage.setItem('catches', JSON.stringify(catches));
 
-        row.innerHTML = `
-          <td>${species}</td>
-          <td>${weight}</td>
-          <td>${bait}</td>
-          <td>${location}</td>
-        `;
+        displayCatches();
 
-        tableBody.appendChild(row);
+        document.getElementById('species').value = '';
+        document.getElementById('weight').value = '';
+        document.getElementById('bait').value = '';
+        document.getElementById('location').value = '';
 
-        // Clear inputs
-        document.getElementById('species').value = "";
-        document.getElementById('weight').value = "";
-        document.getElementById('bait').value = "";
-        document.getElementById('location').value = "";
-
-        // Switch to catches tab automatically
         showTab('catches');
       } else {
         alert("Please fill in all fields!");
       }
     }
+
+    // Display all catches
+    function displayCatches() {
+      const tableBody = document.querySelector("#catchTable tbody");
+      tableBody.innerHTML = '';
+      let catches = JSON.parse(localStorage.getItem('catches') || '[]');
+      catches.forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${c.species}</td><td>${c.weight}</td><td>${c.bait}</td><td>${c.location}</td>`;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Load Live Weather using Open-Meteo API
+    function loadWeather() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error);
+      } else {
+        document.getElementById("weatherStats").innerText = "Geolocation not supported.";
+      }
+
+      function success(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+          .then(res => res.json())
+          .then(data => {
+            const weather = data.current_weather;
+            document.getElementById("weatherStats").innerText =
+              `🌡️ Temp: ${weather.temperature}°C | 💨 Wind: ${weather.windspeed} km/h | ⏱️ Condition: ${weather.weathercode}`;
+          })
+          .catch(() => {
+            document.getElementById("weatherStats").innerText = "Weather data unavailable.";
+          });
+      }
+
+      function error() {
+        document.getElementById("weatherStats").innerText = "Unable to get location.";
+      }
+    }
+
+    // Initialize on page load
+    window.onload = () => {
+      displayCatches();
+      loadWeather();
+    };
   </script>
 
 </body>

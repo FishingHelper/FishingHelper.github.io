@@ -41,7 +41,7 @@
     .hidden {
       display: none;
     }
-    input, select {
+    input {
       padding: 8px;
       margin: 5px 0;
       width: 100%;
@@ -60,6 +60,20 @@
     .save-btn:hover {
       background: #0066cc;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #004080;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #004080;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -70,6 +84,7 @@
 
   <nav>
     <button onclick="showTab('log')">Log Catch</button>
+    <button onclick="showTab('catches')">Catches</button>
     <button onclick="showTab('weather')">Weather</button>
     <button onclick="showTab('stats')">Stats</button>
   </nav>
@@ -95,7 +110,24 @@
         <input type="text" id="location">
       </div>
       <button class="save-btn" onclick="saveCatch()">Save Catch</button>
-      <ul id="catchList"></ul>
+    </div>
+
+    <!-- Catches -->
+    <div id="catches" class="tab hidden">
+      <h2>All Catches</h2>
+      <table id="catchTable">
+        <thead>
+          <tr>
+            <th>Species</th>
+            <th>Weight (kg)</th>
+            <th>Bait</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Catches will appear here -->
+        </tbody>
+      </table>
     </div>
 
     <!-- Weather -->
@@ -118,7 +150,7 @@
       document.getElementById(tabId).classList.remove('hidden');
     }
 
-    // Save catch
+    // Save catch into the table
     function saveCatch() {
       const species = document.getElementById('species').value;
       const weight = document.getElementById('weight').value;
@@ -126,15 +158,26 @@
       const location = document.getElementById('location').value;
 
       if (species && weight && bait && location) {
-        const li = document.createElement("li");
-        li.textContent = `${species} (${weight}kg) using ${bait} at ${location}`;
-        document.getElementById("catchList").appendChild(li);
+        const tableBody = document.querySelector("#catchTable tbody");
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${species}</td>
+          <td>${weight}</td>
+          <td>${bait}</td>
+          <td>${location}</td>
+        `;
+
+        tableBody.appendChild(row);
 
         // Clear inputs
         document.getElementById('species').value = "";
         document.getElementById('weight').value = "";
         document.getElementById('bait').value = "";
         document.getElementById('location').value = "";
+
+        // Switch to catches tab automatically
+        showTab('catches');
       } else {
         alert("Please fill in all fields!");
       }

@@ -16,23 +16,25 @@ const RARITY_DISTRIBUTION = [
 ];
 
 // === Player state ===
-let player = JSON.parse(localStorage.getItem("player")) || {
-  balance: 1000,
-  inventory: []
-};
-
+let player = JSON.parse(localStorage.getItem("player")) || { balance: 1000, inventory: [] };
 let packAvailable = false;
 let openedPack = [];
 let currentIndex = 0;
 
+// === DOM refs ===
 const balanceEl = document.getElementById("balance");
 const invList = document.getElementById("inventory-list");
 const packEl = document.getElementById("pack");
 const cardViewer = document.getElementById("card-viewer");
 const cardEl = document.getElementById("card");
 const nextBtn = document.getElementById("next-card");
+const buyPackBtn = document.getElementById("buy-pack");
+const resetBtn = document.getElementById("reset");
 
-function save() { localStorage.setItem("player", JSON.stringify(player)); }
+function save() {
+  console.log("Saving player:", player);
+  localStorage.setItem("player", JSON.stringify(player));
+}
 
 function weightedPick(dist) {
   const r = Math.random();
@@ -41,10 +43,11 @@ function weightedPick(dist) {
     acc += d.chance;
     if (r <= acc) return d.rarity;
   }
-  return "common";
+  return dist[dist.length - 1].rarity;
 }
 
 function openPackCards() {
+  console.log("Opening pack cards...");
   const pack = [];
   for (let i = 0; i < 5; i++) {
     const rarity = weightedPick(RARITY_DISTRIBUTION);
@@ -58,6 +61,7 @@ function openPackCards() {
 }
 
 function showInventory() {
+  console.log("Rendering inventory, count:", player.inventory.length);
   invList.innerHTML = "";
   if (player.inventory.length === 0) {
     invList.innerHTML = "<p>(empty)</p>";
@@ -73,67 +77,9 @@ function showInventory() {
 
 function showCard() {
   const card = openedPack[currentIndex];
+  if (!card) {
+    console.error("No card to show at index", currentIndex, openedPack);
+    return;
+  }
   cardEl.className = `reveal ${card.rarity}`;
-  cardEl.innerHTML = `<strong>${card.name}</strong><br><em>${card.rarity}</em>`;
-  balanceEl.textContent = player.balance;
-}
-
-// === Event handlers ===
-document.getElementById("buy-pack").onclick = () => {
-  if (player.balance < 100) {
-    alert("Not enough coins!");
-    return;
-  }
-  if (packAvailable) {
-    alert("You already have a pack ready — open it first!");
-    return;
-  }
-  player.balance -= 100;
-  packAvailable = true;
-  save();
-  balanceEl.textContent = player.balance;
-  alert("Pack purchased! Click the pack to open it.");
-};
-
-packEl.onclick = () => {
-  if (!packAvailable) {
-    alert("Buy a pack first!");
-    return;
-  }
-  if (packEl.classList.contains("opening")) return;
-
-  packEl.classList.add("opening");
-  setTimeout(() => {
-    packEl.classList.add("hidden");
-    openedPack = openPackCards();
-    currentIndex = 0;
-    showCard();
-    cardViewer.classList.remove("hidden");
-    packAvailable = false;
-  }, 600);
-};
-
-nextBtn.onclick = () => {
-  currentIndex++;
-  if (currentIndex < openedPack.length) {
-    showCard();
-  } else {
-    cardViewer.classList.add("hidden");
-    packEl.classList.remove("opening", "hidden");
-    showInventory();
-  }
-};
-
-document.getElementById("reset").onclick = () => {
-  if (confirm("Reset progress?")) {
-    localStorage.removeItem("player");
-    player = { balance: 1000, inventory: [] };
-    packAvailable = false;
-    showInventory();
-    balanceEl.textContent = player.balance;
-  }
-};
-
-// === Init ===
-showInventory();
-balanceEl.textContent = player.balance;
+  cardEl.innerHTML = `<strong>${card.name}</strong><br><em>${

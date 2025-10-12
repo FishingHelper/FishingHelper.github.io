@@ -1,7 +1,6 @@
 body {
   font-family: 'Segoe UI', sans-serif;
-  background: radial-gradient(circle, #fefefe, #f0f0f0);
-  color: #333;
+  background: radial-gradient(circle, #fafafa, #f0f0f0);
   text-align: center;
   margin: 0;
   padding: 1.5rem;
@@ -45,9 +44,6 @@ button:hover { background: #ff47b5; transform: scale(1.05); }
   opacity: 0;
 }
 
-#card-viewer {
-  margin-top: 1rem;
-}
 .hidden { display: none; }
 
 #card-container {
@@ -81,7 +77,6 @@ button:hover { background: #ff47b5; transform: scale(1.05); }
   100% { transform: scale(1) rotate(0deg); }
 }
 
-/* Rarity styles */
 .common { border-color: #bbb; background: #f9f9f9; }
 .rare { border-color: #4da6ff; background: #e8f4ff; }
 .epic { border-color: #b84dff; background: #f3e6ff; }

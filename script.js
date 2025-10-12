@@ -1,104 +1,126 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: radial-gradient(circle, #fefefe, #f0f0f0);
-  color: #333;
-  text-align: center;
-  margin: 0;
-  padding: 1.5rem;
+// === Card data ===
+const CARDS = [
+  { name: "Soggy Brainrot", rarity: "common", basePrice: 5 },
+  { name: "Cracked Mindworm", rarity: "common", basePrice: 6 },
+  { name: "Gleaming Synapse", rarity: "rare", basePrice: 25 },
+  { name: "Neon Hallucina", rarity: "rare", basePrice: 30 },
+  { name: "Void Overlord", rarity: "epic", basePrice: 120 },
+  { name: "Eternal Brainstorm", rarity: "legendary", basePrice: 600 }
+];
+
+const RARITY_DISTRIBUTION = [
+  { rarity: "common", chance: 0.75 },
+  { rarity: "rare", chance: 0.2 },
+  { rarity: "epic", chance: 0.04 },
+  { rarity: "legendary", chance: 0.01 }
+];
+
+// === Player state ===
+let player = JSON.parse(localStorage.getItem("player")) || {
+  balance: 1000,
+  inventory: []
+};
+function save() { localStorage.setItem("player", JSON.stringify(player)); }
+
+// === UI elements ===
+const packEl = document.getElementById("pack");
+const balanceEl = document.getElementById("balance");
+const invList = document.getElementById("inventory-list");
+const cardViewer = document.getElementById("card-viewer");
+const cardEl = document.getElementById("card");
+const nextBtn = document.getElementById("next-card");
+
+let openedPack = [];
+let currentIndex = 0;
+
+// === Game logic ===
+function weightedPick(dist) {
+  const r = Math.random();
+  let acc = 0;
+  for (const item of dist) {
+    acc += item.chance;
+    if (r <= acc) return item.rarity;
+  }
+  return "common";
 }
 
-h1 { margin-bottom: 1rem; }
-
-button {
-  background: #ff69c9;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.1s ease, background 0.2s;
-}
-button:hover { background: #ff47b5; transform: scale(1.05); }
-
-#pack-area {
-  margin: 2rem auto;
-  height: 260px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+function openPack() {
+  const pack = [];
+  for (let i = 0; i < 5; i++) {
+    const rarity = weightedPick(RARITY_DISTRIBUTION);
+    const pool = CARDS.filter(c => c.rarity === rarity);
+    const card = { ...pool[Math.floor(Math.random() * pool.length)], id: Date.now() + Math.random() };
+    pack.push(card);
+    player.inventory.push(card);
+  }
+  player.balance -= 100;
+  save();
+  return pack;
 }
 
-#pack {
-  width: 160px;
-  height: 220px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #ff47b5, #5d00ff);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  transition: transform 0.5s ease, opacity 0.3s;
-  cursor: pointer;
-}
-#pack:hover { transform: scale(1.05); }
-
-#pack.opening {
-  transform: rotateY(180deg) scale(0.8);
-  opacity: 0;
+function showInventory() {
+  invList.innerHTML = "";
+  if (player.inventory.length === 0) {
+    invList.innerHTML = "<p>(empty)</p>";
+    return;
+  }
+  player.inventory.forEach(c => {
+    const div = document.createElement("div");
+    div.className = `inv-card ${c.rarity}`;
+    div.innerHTML = `<strong>${c.name}</strong><br><em>${c.rarity}</em>`;
+    invList.appendChild(div);
+  });
 }
 
-#card-viewer {
-  margin-top: 1rem;
-}
-.hidden { display: none; }
+// === Pack animations ===
+packEl.onclick = () => {
+  if (packEl.classList.contains("opening")) return;
+  if (player.balance < 100) {
+    alert("Not enough coins!");
+    return;
+  }
+  packEl.classList.add("opening");
+  setTimeout(() => {
+    packEl.classList.add("hidden");
+    openedPack = openPack();
+    currentIndex = 0;
+    showCard();
+    cardViewer.classList.remove("hidden");
+  }, 600);
+};
 
-#card-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#card {
-  width: 200px;
-  height: 280px;
-  border-radius: 12px;
-  border: 3px solid #ccc;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-  transition: transform 0.4s ease;
-}
-#card.reveal {
-  animation: pop 0.4s ease;
+function showCard() {
+  const card = openedPack[currentIndex];
+  cardEl.className = `reveal ${card.rarity}`;
+  cardEl.innerHTML = `<strong>${card.name}</strong><br><em>${card.rarity}</em>`;
+  balanceEl.textContent = player.balance;
 }
 
-@keyframes pop {
-  0% { transform: scale(0.1) rotate(20deg); opacity: 0; }
-  60% { transform: scale(1.2) rotate(-10deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); }
-}
+nextBtn.onclick = () => {
+  currentIndex++;
+  if (currentIndex < openedPack.length) {
+    showCard();
+  } else {
+    cardViewer.classList.add("hidden");
+    packEl.classList.remove("opening", "hidden");
+    showInventory();
+  }
+};
 
-/* Rarity styles */
-.common { border-color: #bbb; background: #f9f9f9; }
-.rare { border-color: #4da6ff; background: #e8f4ff; }
-.epic { border-color: #b84dff; background: #f3e6ff; }
-.legendary { border-color: #ffcc00; background: #fff7c0; }
+// === Buttons ===
+document.getElementById("buy-pack").onclick = () => {
+  alert("Click the pack to open it!");
+};
 
-#inventory-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 1rem;
-}
+document.getElementById("reset").onclick = () => {
+  if (confirm("Reset progress?")) {
+    localStorage.removeItem("player");
+    player = { balance: 1000, inventory: [] };
+    showInventory();
+    balanceEl.textContent = player.balance;
+  }
+};
 
-.inv-card {
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  width: 120px;
-  padding: 0.5rem;
-  margin: 0.4rem;
-  font-size: 0.9rem;
-}
+// === Init ===
+showInventory();
+balanceEl.textContent = player.balance;

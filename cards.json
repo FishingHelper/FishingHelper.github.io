@@ -1,8 +1,0 @@
-[
-  {"id":"c001","name":"Soggy Brainrot","rarity":"common","basePrice":5},
-  {"id":"c002","name":"Cracked Mindworm","rarity":"common","basePrice":6},
-  {"id":"r001","name":"Gleaming Synapse","rarity":"rare","basePrice":25},
-  {"id":"r002","name":"Neon Hallucina","rarity":"rare","basePrice":30},
-  {"id":"e001","name":"Void Overlord","rarity":"epic","basePrice":120},
-  {"id":"l001","name":"Eternal Brainstorm (Legend)","rarity":"legendary","basePrice":600}
-]

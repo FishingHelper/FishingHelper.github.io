@@ -4,33 +4,48 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brainrot Pack Opener</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <h1>🧠 Brainrot Pack Opener</h1>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle, #fafafa, #f0f0f0);
+      text-align: center;
+      margin: 0;
+      padding: 1.5rem;
+    }
 
-  <div id="player">
-    💰 Balance: <span id="balance">1000</span>
-    <button id="buy-pack">Buy Pack (100)</button>
-    <button id="reset">Reset</button>
-  </div>
+    h1 { margin-bottom: 1rem; }
 
-  <div id="pack-area">
-    <div id="pack" class="closed"></div>
-  </div>
+    button {
+      background: #ff69c9;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.2s;
+    }
+    button:hover { background: #ff47b5; transform: scale(1.05); }
 
-  <div id="card-viewer" class="hidden">
-    <div id="card-container">
-      <div id="card"></div>
-      <button id="next-card">Next →</button>
-    </div>
-  </div>
+    #pack-area {
+      margin: 2rem auto;
+      height: 260px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-  <section id="inventory">
-    <h3>📦 Inventory</h3>
-    <div id="inventory-list"></div>
-  </section>
-
-  <script src="script.js"></script>
-</body>
-</html>
+    #pack {
+      width: 160px;
+      height: 220px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ff47b5, #5d00ff);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      transition: transform 0.5s ease, opacity 0.3s;
+      cursor: pointer;
+    }
+    #pack:hover { transform: scale(1.05); }
+    #pack.opening {
+      transform: rotateY(180deg) scale(0.8);
+      opacity: 0;
+    }

@@ -3,23 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brainrot Card Opener</title>
+  <title>Brainrot Pack Opener</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>🧠 Brainrot Card Opener</h1>
 
-  <div id="player-area">
-    <h2>Player: <span id="player-name">Guest</span></h2>
-    <p>💰 Balance: <span id="balance">1000</span></p>
+  <div id="player">
+    💰 Balance: <span id="balance">1000</span>
     <button id="buy-pack">Buy Pack (100)</button>
-    <button id="reset">Reset Progress</button>
+    <button id="reset">Reset</button>
   </div>
 
-  <section id="last-pack">
-    <h3>🎴 Last Pack</h3>
-    <div id="pack-cards"></div>
-  </section>
+  <div id="pack-area">
+    <div id="pack" class="closed"></div>
+  </div>
+
+  <div id="card-viewer" class="hidden">
+    <div id="card-container">
+      <div id="card"></div>
+      <button id="next-card">Next →</button>
+    </div>
+  </div>
 
   <section id="inventory">
     <h3>📦 Inventory</h3>

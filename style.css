@@ -1,0 +1,33 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #fafafa;
+  color: #333;
+  max-width: 800px;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+button {
+  background: #ff8ae2;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin: 0.3rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover { background: #ff63d5; }
+
+.card {
+  border: 2px solid #ddd;
+  padding: 0.5rem;
+  margin: 0.4rem;
+  border-radius: 10px;
+  display: inline-block;
+  width: 150px;
+}
+.card.common { border-color: #bbb; background: #f9f9f9; }
+.card.rare { border-color: #4da6ff; background: #e8f4ff; }
+.card.epic { border-color: #b84dff; background: #f3e6ff; }
+.card.legendary { border-color: #ffcc00; background: #fff6cc; }

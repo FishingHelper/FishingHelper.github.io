@@ -4,272 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brainrot Pack Opener</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(circle, #fafafa, #f0f0f0);
-      text-align: center;
-      margin: 0;
-      padding: 1.5rem;
-    }
-
-    h1 { margin-bottom: 1rem; }
-
-    button {
-      background: #ff69c9;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 8px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.1s ease, background 0.2s;
-    }
-    button:hover { background: #ff47b5; transform: scale(1.05); }
-
-    #pack-area {
-      margin: 2rem auto;
-      height: 260px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #pack {
-      width: 160px;
-      height: 220px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #ff47b5, #5d00ff);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      transition: transform 0.5s ease, opacity 0.3s;
-      cursor: pointer;
-    }
-    #pack:hover { transform: scale(1.05); }
-    #pack.opening {
-      transform: rotateY(180deg) scale(0.8);
-      opacity: 0;
-    }
-
-    .hidden { display: none; }
-
-    #card-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #card {
-      width: 200px;
-      height: 280px;
-      border-radius: 12px;
-      border: 3px solid #ccc;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-      transition: transform 0.4s ease;
-    }
-    #card.reveal { animation: pop 0.4s ease; }
-
-    @keyframes pop {
-      0% { transform: scale(0.1) rotate(20deg); opacity: 0; }
-      60% { transform: scale(1.2) rotate(-10deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); }
-    }
-
-    .common { border-color: #bbb; background: #f9f9f9; }
-    .rare { border-color: #4da6ff; background: #e8f4ff; }
-    .epic { border-color: #b84dff; background: #f3e6ff; }
-    .legendary { border-color: #ffcc00; background: #fff7c0; }
-
-    #inventory-list {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 1rem;
-    }
-
-    .inv-card {
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      width: 120px;
-      padding: 0.5rem;
-      margin: 0.4rem;
-      font-size: 0.9rem;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🧠 Brainrot Pack Opener</h1>
+  <div class="container">
+    <h1>🧠 Brainrot Pack Opener 🧠</h1>
+    <p>Open chaotic Italian brainrot packs and build your collection!</p>
 
-  <div id="player">
-    💰 Balance: <span id="balance">1000</span>
-    <button id="buy-pack">Buy Pack (100)</button>
-    <button id="reset">Reset</button>
-  </div>
-
-  <div id="pack-area">
-    <div id="pack" class="closed"></div>
-  </div>
-
-  <div id="card-viewer" class="hidden">
-    <div id="card-container">
-      <div id="card"></div>
-      <button id="next-card">Next →</button>
+    <div class="stats">
+      <h3>Balance: <span id="balance">0</span>🧠</h3>
+      <button id="buy-pack">+100🧠 (Cheat)</button>
     </div>
+
+    <div class="pack">
+      <button id="open-pack" class="main-btn">🎁 Open Pack (100🧠)</button>
+    </div>
+
+    <div id="card" class="card">Click "Open Pack" to begin!</div>
+
+    <div class="controls">
+      <button id="next-card">➡️ Next Card</button>
+      <button id="sell-card">💰 Sell Card</button>
+    </div>
+
+    <h2>Your Inventory</h2>
+    <div id="inventory" class="inventory"></div>
   </div>
 
-  <section id="inventory">
-    <h3>📦 Inventory</h3>
-    <div id="inventory-list"></div>
-  </section>
-
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // === Card data ===
-    const CARDS = [
-      { name: "Soggy Brainrot", rarity: "common", basePrice: 5 },
-      { name: "Cracked Mindworm", rarity: "common", basePrice: 6 },
-      { name: "Gleaming Synapse", rarity: "rare", basePrice: 25 },
-      { name: "Neon Hallucina", rarity: "rare", basePrice: 30 },
-      { name: "Void Overlord", rarity: "epic", basePrice: 120 },
-      { name: "Eternal Brainstorm", rarity: "legendary", basePrice: 600 }
-    ];
-
-    const RARITY_DISTRIBUTION = [
-      { rarity: "common", chance: 0.75 },
-      { rarity: "rare", chance: 0.2 },
-      { rarity: "epic", chance: 0.04 },
-      { rarity: "legendary", chance: 0.01 }
-    ];
-
-    let player = JSON.parse(localStorage.getItem("player")) || { balance: 1000, inventory: [] };
-    let packAvailable = false;
-    let openedPack = [];
-    let currentIndex = 0;
-
-    const balanceEl = document.getElementById("balance");
-    const invList = document.getElementById("inventory-list");
-    const packEl = document.getElementById("pack");
-    const cardViewer = document.getElementById("card-viewer");
-    const cardEl = document.getElementById("card");
-    const nextBtn = document.getElementById("next-card");
-    const buyPackBtn = document.getElementById("buy-pack");
-    const resetBtn = document.getElementById("reset");
-
-    function save() { localStorage.setItem("player", JSON.stringify(player)); }
-
-    function weightedPick(dist) {
-      const r = Math.random();
-      let acc = 0;
-      for (const d of dist) {
-        acc += d.chance;
-        if (r <= acc) return d.rarity;
-      }
-      return dist[dist.length - 1].rarity;
-    }
-
-    function openPackCards() {
-      const pack = [];
-      for (let i = 0; i < 5; i++) {
-        const rarity = weightedPick(RARITY_DISTRIBUTION);
-        const pool = CARDS.filter(c => c.rarity === rarity);
-        const card = { ...pool[Math.floor(Math.random() * pool.length)], id: Date.now() + Math.random() };
-        pack.push(card);
-        player.inventory.push(card);
-      }
-      save();
-      return pack;
-    }
-
-    function showInventory() {
-      invList.innerHTML = "";
-      if (player.inventory.length === 0) {
-        invList.innerHTML = "<p>(empty)</p>";
-        return;
-      }
-      player.inventory.forEach(c => {
-        const div = document.createElement("div");
-        div.className = `inv-card ${c.rarity}`;
-        div.innerHTML = `<strong>${c.name}</strong><br><em>${c.rarity}</em>`;
-        invList.appendChild(div);
-      });
-    }
-
-    function showCard() {
-      const card = openedPack[currentIndex];
-      cardEl.className = `reveal ${card.rarity}`;
-      cardEl.innerHTML = `<strong>${card.name}</strong><br><em>${card.rarity}</em>`;
-      balanceEl.textContent = player.balance;
-    }
-
-    // === Buy Pack ===
-    buyPackBtn.addEventListener("click", () => {
-      if (player.balance < 100) {
-        alert("Not enough coins!");
-        return;
-      }
-      if (packAvailable) {
-        alert("You already have a pack waiting!");
-        return;
-      }
-      player.balance -= 100;
-      packAvailable = true;
-      save();
-      balanceEl.textContent = player.balance;
-      alert("Pack bought! Click the pack to open it.");
-    });
-
-    // === Open Pack ===
-    packEl.addEventListener("click", () => {
-      if (!packAvailable) {
-        alert("Buy a pack first!");
-        return;
-      }
-      if (packEl.classList.contains("opening")) return;
-
-      packEl.classList.add("opening");
-      setTimeout(() => {
-        packEl.classList.add("hidden");
-        openedPack = openPackCards();
-        currentIndex = 0;
-        showCard();
-        cardViewer.classList.remove("hidden");
-        packAvailable = false;
-      }, 600);
-    });
-
-    // === Next Card ===
-    nextBtn.addEventListener("click", () => {
-      currentIndex++;
-      if (currentIndex < openedPack.length) {
-        showCard();
-      } else {
-        cardViewer.classList.add("hidden");
-        packEl.classList.remove("opening", "hidden");
-        showInventory();
-      }
-    });
-
-    // === Reset ===
-    resetBtn.addEventListener("click", () => {
-      if (confirm("Reset progress?")) {
-        localStorage.removeItem("player");
-        player = { balance: 1000, inventory: [] };
-        packAvailable = false;
-        showInventory();
-        balanceEl.textContent = player.balance;
-      }
-    });
-
-    // === Init ===
-    showInventory();
-    balanceEl.textContent = player.balance;
-  });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

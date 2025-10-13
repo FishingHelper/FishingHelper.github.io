@@ -49,22 +49,24 @@ button:hover {
   font-size: 1.1rem;
   box-shadow: 0 0 15px rgba(255,255,255,0.1);
   transition: all 0.3s ease;
+  white-space: pre-line;
 }
 
-/* Rarity styles */
-.common { border-color: #aaa; }
-.rare { border-color: #3a9dff; box-shadow: 0 0 12px #3a9dff50; }
-.epic { border-color: #b73aff; box-shadow: 0 0 12px #b73aff60; }
-.legendary { border-color: #ff8c00; box-shadow: 0 0 14px #ff8c0070; }
-.mythic { 
-  border-color: #ff00ff;
-  box-shadow: 0 0 20px #ff00ff80;
-  animation: mythicPulse 2s infinite;
+/* Rarity Colors */
+.common strong { color: #aaa; }
+.rare strong { color: #3aa0ff; }
+.epic strong { color: #b73aff; }
+.legendary strong { color: #ff8c00; }
+.mythic strong {
+  background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: rainbow 3s linear infinite;
 }
 
-@keyframes mythicPulse {
-  0%, 100% { box-shadow: 0 0 20px #ff00ff80; }
-  50% { box-shadow: 0 0 35px #ff00ff; }
+@keyframes rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
 }
 
 /* Inventory grid */
@@ -81,4 +83,33 @@ button:hover {
   padding: 8px;
   font-size: 0.9rem;
   border: 2px solid #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inv-card:hover {
+  transform: scale(1.05);
+  border-color: #fff;
+}
+
+/* Redeem code input */
+#redeem-code {
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid #444;
+  margin-right: 5px;
+}
+
+#redeem-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #ff0080;
+  color: white;
+  cursor: pointer;
+}
+
+#redeem-msg {
+  margin-top: 5px;
+  font-weight: bold;
 }

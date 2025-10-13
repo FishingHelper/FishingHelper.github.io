@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Brainrot Pack Opener</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -23,12 +23,17 @@
     <div id="card" class="card">Click "Open Pack" to begin!</div>
 
     <div class="controls">
-      <button id="next-card">➡️ Next Card</button>
-      <button id="sell-card">💰 Sell Card</button>
+      <button id="next-card">➡️ Next Card (Add to Inventory)</button>
+      <button id="sell-card">💰 Sell Card (from Pack)</button>
     </div>
 
     <h2>Your Inventory</h2>
     <div id="inventory" class="inventory"></div>
+
+    <h2>Redeem a Secret Brainrot</h2>
+    <input type="text" id="redeem-code" placeholder="Enter code..." />
+    <button id="redeem-btn">Redeem</button>
+    <p id="redeem-msg"></p>
   </div>
 
   <script src="script.js"></script>

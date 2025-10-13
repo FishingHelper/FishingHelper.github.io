@@ -148,9 +148,23 @@ function updateInventory() {
 openBtn.onclick = openPack;
 nextBtn.onclick = () => {
   if (!openedPack.length) return;
-  currentIndex = (currentIndex + 1) % openedPack.length;
-  showCard();
+
+  // Save current card before moving on
+  const currentCard = openedPack[currentIndex];
+  player.inventory.push(currentCard);
+  updateInventory();
+
+  // Remove the card we just added to inventory
+  openedPack.splice(currentIndex, 1);
+
+  if (openedPack.length > 0) {
+    currentIndex = currentIndex % openedPack.length;
+    showCard();
+  } else {
+    cardEl.textContent = "Pack complete!";
+  }
 };
+
 sellBtn.onclick = sellCard;
 buyBtn.onclick = () => {
   player.balance += 100;

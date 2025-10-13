@@ -42,7 +42,7 @@ const CARDS = [
   { name: "Sigma Gyatt Rizzler", rarity: "mythic", basePrice: 2800 }
 ];
 
-// 🎮 Game Data
+// 🎮 Player Data
 let player = {
   balance: 100,
   inventory: []
@@ -59,18 +59,32 @@ const openPackBtn = document.getElementById("open-pack");
 const nextBtn = document.getElementById("next-card");
 const sellBtn = document.getElementById("sell-card");
 const cheatBtn = document.getElementById("buy-pack");
+const redeemInput = document.getElementById("redeem-code");
+const redeemBtn = document.getElementById("redeem-btn");
+const redeemMsg = document.getElementById("redeem-msg");
 
-// === Helpers ===
+// === Update UI ===
 function updateBalance() {
   balanceEl.textContent = player.balance;
 }
 
 function updateInventory() {
   inventoryEl.innerHTML = "";
-  player.inventory.forEach(c => {
+  player.inventory.forEach((c, i) => {
     const div = document.createElement("div");
     div.className = `inv-card ${c.rarity}`;
-    div.textContent = `${c.name} (${c.rarity})`;
+    div.innerHTML = `
+      <strong>${c.name}</strong><br>
+      <small>${c.rarity.toUpperCase()} | 💰${c.basePrice}</small>
+    `;
+    div.onclick = () => {
+      if (confirm(`Sell ${c.name} for ${c.basePrice}🧠?`)) {
+        player.balance += c.basePrice;
+        player.inventory.splice(i, 1);
+        updateInventory();
+        updateBalance();
+      }
+    };
     inventoryEl.appendChild(div);
   });
 }
@@ -86,7 +100,6 @@ function openPack() {
   player.balance -= cost;
   updateBalance();
 
-  // Generate 5 cards
   openedPack = Array.from({ length: 5 }, getRandomCard);
   currentIndex = 0;
   showCard();
@@ -113,7 +126,10 @@ function showCard() {
     return;
   }
   const card = openedPack[currentIndex];
-  cardEl.textContent = `${card.name}\n(${card.rarity})`;
+  cardEl.innerHTML = `
+    <strong>${card.name}</strong><br>
+    <small>${card.rarity.toUpperCase()} | 💰${card.basePrice}</small>
+  `;
   cardEl.className = `card ${card.rarity}`;
 }
 
@@ -123,23 +139,17 @@ openPackBtn.onclick = openPack;
 nextBtn.onclick = () => {
   if (!openedPack.length) return;
 
-  // ✅ Save current card before showing next
+  // Add to inventory before moving on
   const currentCard = openedPack[currentIndex];
   player.inventory.push(currentCard);
   updateInventory();
 
-  // Remove it from current pack
+  // Remove from pack
   openedPack.splice(currentIndex, 1);
 
-  if (openedPack.length > 0) {
-    currentIndex = currentIndex % openedPack.length;
-    showCard();
-  } else {
-    showCard();
-  }
+  showCard();
 };
 
-// 💰 Sell Card button
 sellBtn.onclick = () => {
   if (!openedPack.length) return;
   const card = openedPack[currentIndex];
@@ -149,10 +159,31 @@ sellBtn.onclick = () => {
   showCard();
 };
 
-// 🧠 Cheat button to get more coins
 cheatBtn.onclick = () => {
   player.balance += 100;
   updateBalance();
+};
+
+// === Redeem Code System ===
+const CODES = {
+  "ULTIMATEBRAIN": { name: "Sigma Gyatt Rizzler", rarity: "mythic", basePrice: 2800 },
+  "SUPERBRAIN": { name: "Bombardiro Crocodilo", rarity: "legendary", basePrice: 550 },
+  "EPICBRAIN": { name: "Glorbo Fruttodrillo", rarity: "epic", basePrice: 135 }
+};
+
+redeemBtn.onclick = () => {
+  const code = redeemInput.value.toUpperCase().trim();
+  if (CODES[code]) {
+    const card = CODES[code];
+    player.inventory.push(card);
+    updateInventory();
+    redeemMsg.textContent = `✅ You got ${card.name} (${card.rarity.toUpperCase()})!`;
+    redeemMsg.style.color = "lime";
+    redeemInput.value = "";
+  } else {
+    redeemMsg.textContent = "❌ Invalid code!";
+    redeemMsg.style.color = "red";
+  }
 };
 
 // === Init ===

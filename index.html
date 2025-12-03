@@ -1,41 +1,1245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brainrot Pack Opener</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Dle Hub</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font family -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5e7eb; /* Light gray background */
+        }
+        .game-grid-cell {
+            /* Adjusted size for Dle flexibility */
+            width: 45px; 
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border-radius: 8px; /* Slightly rounder */
+            border: 2px solid #9ca3af; /* Gray-400 border */
+            transition: transform 0.3s ease-out, background-color 0.3s ease, border-color 0.3s ease;
+            user-select: none;
+            color: #1f2937; /* Default text color */
+            transform-style: preserve-3d;
+            margin: 2px; /* Add margin for slight separation */
+        }
+        
+        /* Ensure responsive grid sizing */
+        @media (min-width: 640px) {
+            .game-grid-cell {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+                margin: 4px;
+            }
+        }
+
+        /* Classes for coloring after the guess */
+        /* Wordle/Mathdle colors (for the tile) */
+        .correct {
+            background-color: #10b981; /* green-500 */
+            border-color: #10b981;
+            color: white;
+        }
+        .present {
+            background-color: #f59e0b; /* amber-500 */
+            border-color: #f59e0b;
+            color: white;
+        }
+        .absent {
+            background-color: #6b7280; /* gray-500 */
+            border-color: #6b7280;
+            color: white;
+        }
+
+        /* The flip effect */
+        .flipping {
+            animation: flip 0.3s ease-in;
+            animation-fill-mode: forwards;
+        }
+        @keyframes flip {
+            0% { transform: rotateX(0deg); }
+            50% { transform: rotateX(90deg); }
+            100% { transform: rotateX(0deg); }
+        }
+
+        /* Game Selector Button Styling */
+        .game-selector-btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 9999px; /* Pill shape */
+            font-weight: 600;
+            color: white;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            white-space: nowrap; /* Prevent wrapping */
+        }
+        .game-selector-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Keyboard styles for Geogordle/Wordle */
+        .keyboard-key {
+            padding: 0.5rem 0.6rem;
+            min-width: 2rem;
+            font-weight: bold;
+            font-size: 0.875rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s, opacity 0.3s;
+            background-color: #d1d5db; /* gray-300 default */
+            color: #1f2937;
+            border-radius: 6px;
+        }
+        .keyboard-key:hover {
+            opacity: 0.8;
+        }
+        /* Keyboard feedback colors (for the key) */
+        .key-correct { background-color: #6aaa64 !important; color: white; }
+        .key-present { background-color: #c9b458 !important; color: white; }
+        .key-absent { background-color: #787c7e !important; color: white; }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <h1>🧠 Brainrot Pack Opener 🧠</h1>
-    <p>Open chaotic Italian brainrot packs and build your collection!</p>
+<body class="min-h-screen flex flex-col items-center p-4">
 
-    <div class="stats">
-      <h3>Balance: <span id="balance">0</span>🧠</h3>
-      <button id="buy-pack">+100🧠 (Cheat)</button>
-    </div>
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
-    <div class="pack">
-      <button id="open-pack" class="main-btn">🎁 Open Pack (100🧠)</button>
-    </div>
+        // Set Firebase logging level for debugging
+        setLogLevel('Debug');
 
-    <div id="card" class="card">Click "Open Pack" to begin!</div>
+        // Global variables provided by the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-    <div class="controls">
-      <button id="next-card">➡️ Next Card (Add to Inventory)</button>
-      <button id="sell-card">💰 Sell Card (from Pack)</button>
-    </div>
+        let db, auth, userId = null;
+        let isAuthReady = false;
 
-    <h2>Your Inventory</h2>
-    <div id="inventory" class="inventory"></div>
+        // Function to initialize Firebase and authenticate
+        window.initializeFirebase = async () => {
+            try {
+                if (!firebaseConfig) {
+                    console.error("Firebase config not found. Running without persistence.");
+                    document.getElementById('stats-area').innerHTML = '<p class="text-sm text-red-500">Warning: Firebase config missing. Stats will not be saved.</p>';
+                    isAuthReady = true;
+                    return;
+                }
 
-    <h2>Redeem a Secret Brainrot</h2>
-    <input type="text" id="redeem-code" placeholder="Enter code..." />
-    <button id="redeem-btn">Redeem</button>
-    <p id="redeem-msg"></p>
-  </div>
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-  <script src="script.js"></script>
+                // Authentication Logic
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-id-display').textContent = 'User ID: ' + userId;
+                        // Once authenticated, start listening for stats
+                        window.db = db; // Attach to window for use by game logic
+                        window.userId = userId;
+                        window.listenForStats();
+                    } else {
+                        // Handle sign out if necessary, but typically for this app, we stay signed in anonymously
+                        console.log("User signed out.");
+                        userId = null;
+                        document.getElementById('user-id-display').textContent = 'User ID: (Unauthenticated)';
+                    }
+                    isAuthReady = true;
+                });
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+            } catch (error) {
+                console.error("Firebase initialization or authentication failed:", error);
+                isAuthReady = true;
+            }
+        };
+
+        // Function to listen for real-time stats updates
+        window.listenForStats = () => {
+            if (!db || !userId) return;
+
+            // Private data storage path
+            const statsDocRef = doc(db, `artifacts/${appId}/users/${userId}/dlegames`, 'stats');
+
+            onSnapshot(statsDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    window.gameStats = docSnap.data();
+                } else {
+                    // Initialize stats if document doesn't exist
+                    window.gameStats = { wordle: { wins: 0, played: 0 }, mathdle: { wins: 0, played: 0 }, capitdle: { wins: 0, played: 0 }, geogordle: { wins: 0, played: 0 } };
+                }
+                window.updateStatsDisplay();
+            }, (error) => {
+                console.error("Error listening to stats:", error);
+                window.updateStatsDisplay(); // Update display even on error
+            });
+        };
+
+        // Function to save stats to Firestore
+        window.saveStats = async (gameType, isWin) => {
+            if (!db || !userId || !window.gameStats) {
+                console.warn("Firestore not ready or user not authenticated. Stats not saved.");
+                return;
+            }
+
+            const statsDocRef = doc(db, `artifacts/${appId}/users/${userId}/dlegames`, 'stats');
+
+            // Ensure the game type object exists
+            if (!window.gameStats[gameType]) {
+                window.gameStats[gameType] = { wins: 0, played: 0 };
+            }
+
+            // Update local state
+            window.gameStats[gameType].played += 1;
+            if (isWin) {
+                window.gameStats[gameType].wins += 1;
+            }
+
+            // Save to Firestore. Merge ensures other game stats are untouched.
+            try {
+                await setDoc(statsDocRef, window.gameStats, { merge: true });
+                console.log("Stats saved successfully for:", gameType);
+                window.updateStatsDisplay();
+            } catch (e) {
+                console.error("Error writing document: ", e);
+            }
+        };
+
+        // Initialize Firebase on window load
+        window.addEventListener('load', window.initializeFirebase);
+    </script>
+
+    <!-- Header and Game Selector -->
+    <header class="w-full max-w-lg bg-white shadow-2xl p-6 rounded-xl mb-6">
+        <h1 class="text-3xl font-extrabold text-gray-800 text-center mb-4">The Ultimate <span class="text-indigo-600">Dle</span> Hub</h1>
+        <div class="flex justify-center space-x-2 sm:space-x-4 flex-wrap">
+            <button onclick="window.setGame('wordle')" id="btn-wordle" class="game-selector-btn bg-indigo-500 mb-2">Wordle</button>
+            <button onclick="window.setGame('mathdle')" id="btn-mathdle" class="game-selector-btn bg-purple-500 mb-2">Mathdle</button>
+            <button onclick="window.setGame('geogordle')" id="btn-geogordle" class="game-selector-btn bg-yellow-600 mb-2">Geogordle</button>
+            <button onclick="window.setGame('capitdle')" id="btn-capitdle" class="game-selector-btn bg-green-500 mb-2">Capitdle</button>
+        </div>
+        <p id="user-id-display" class="text-xs text-gray-400 text-center mt-3 break-all"></p>
+    </header>
+
+    <!-- Game Area -->
+    <main class="w-full max-w-lg bg-white shadow-2xl p-8 rounded-xl">
+        <h2 id="game-title" class="text-2xl font-bold text-gray-700 mb-6 text-center border-b pb-2"></h2>
+
+        <!-- Message Box -->
+        <div id="message-box" class="hidden p-3 mb-4 rounded-lg text-center font-semibold transition-all duration-300"></div>
+
+        <!-- Dynamic Game Content Container -->
+        <div id="game-container" class="flex flex-col items-center">
+            <!-- Game content (grid/input) will be rendered here -->
+            <p class="text-center text-gray-500 mt-4">Select a game to begin playing!</p>
+        </div>
+
+        <!-- Input Section (Dynamic) -->
+        <div id="input-section" class="mt-8 flex flex-col items-center">
+            <!-- Input elements (keyboard/form) will be rendered here -->
+        </div>
+
+    </main>
+
+    <!-- Stats Area -->
+    <section id="stats-area" class="w-full max-w-lg mt-6 p-6 bg-white shadow-2xl rounded-xl">
+        <h3 class="text-xl font-bold text-gray-700 mb-4 border-b pb-2">Your Game Stats</h3>
+        <!-- Stats will be dynamically updated here -->
+    </section>
+
+    <!-- Global JavaScript Logic -->
+    <script>
+        // --- Game Data ---
+
+        const WORD_LIST = {
+            4: ['TIME', 'DREAM', 'BLUE', 'HOPE', 'GAME', 'SHIP', 'JUMP', 'LOCK', 'ROSE', 'FAST', 'QUIZ', 'RACE', 'READ', 'SAVE', 'WISH', 'CASH', 'FIRE', 'COLD', 'GOLD', 'CURE'],
+            5: ['APPLE', 'CRANE', 'GHOST', 'SHAPE', 'PIXEL', 'LUCKY', 'BRICK', 'POWER', 'FIGHT', 'EAGLE', 'WATER', 'SOUND', 'HOUSE', 'BEACH', 'CLOUD', 'TRAIN', 'RIVER', 'SPACE', 'CHAIR', 'TABLE', 'SWEET', 'FUNNY', 'SMART'],
+            6: ['SECRET', 'PLANET', 'JUMPER', 'BRIGHT', 'CASTLE', 'MONKEY', 'WONDER', 'POCKET', 'FUTURE', 'TRAVEL', 'RHYTHM', 'YELLOW', 'PURPLE', 'ORANGE', 'STARRY', 'SUMMER', 'WINTER', 'MASTER', 'QUIETLY'],
+        };
+
+        const GEOGRAPHY_WORDS = [
+            'TUNDRA',       // 6
+            'EROSION',      // 7
+            'MANTLE',       // 6
+            'TECTONIC',     // 8
+            'GLACIER',      // 7
+            'SETTLEMENT',   // 10
+            'VOLCANO',      // 7
+            'RAINFOREST',   // 10
+            'URBANISATION', // 12
+            'DESERT',       // 6
+            'COASTAL',      // 7
+            'DEVELOPMENT',  // 11
+            'SUSTAINABLE'   // 11
+        ].map(word => word.toUpperCase());
+        
+        const VALID_LETTERS = /^[a-zA-Z]$/;
+
+        // --- Shared State and Utilities ---
+        window.gameState = {
+            activeGame: null,
+            maxGuesses: 6,
+            currentGuess: 0,
+            wordle: {
+                targetWord: '',
+                guesses: [],
+                wordLength: 5, // Default length
+            },
+            mathdle: {
+                targetEquation: '',
+                guesses: [],
+                equationLength: 7, // Default length
+            },
+            capitdle: {
+                country: '',
+                answer: '',
+                guesses: [],
+            },
+            geogordle: {
+                targetWord: '',
+                guesses: [],
+                wordLength: 0, // Dynamic length
+                keyboardState: {} // Tracks color of virtual keyboard keys
+            }
+        };
+
+        // Initialize with default stats object structure
+        window.gameStats = { 
+            wordle: { wins: 0, played: 0 }, 
+            mathdle: { wins: 0, played: 0 }, 
+            capitdle: { wins: 0, played: 0 },
+            geogordle: { wins: 0, played: 0 } 
+        };
+
+        const games = {
+            'wordle': {
+                title: 'Wordle (Guess the Word)',
+                init: initWordle,
+                render: renderWordle,
+                submit: submitWordle,
+            },
+            'mathdle': {
+                title: 'Mathdle (Guess the Equation)',
+                init: initMathdle,
+                render: renderMathdle,
+                submit: submitMathdle,
+            },
+            'capitdle': {
+                title: 'Capitdle (Capital City)',
+                init: initCapitdle,
+                render: renderCapitdle,
+                submit: submitCapitdle,
+                data: [{ country: 'France', capital: 'PARIS' }, { country: 'Japan', capital: 'TOKYO' }],
+            },
+            'geogordle': {
+                title: 'Geogordle (Geography Word)',
+                init: initGeogordle,
+                render: renderGeogordle,
+                submit: submitGeogordle,
+            }
+        };
+
+        const messageBox = document.getElementById('message-box');
+        const gameContainer = document.getElementById('game-container');
+        const inputSection = document.getElementById('input-section');
+
+        // --- UI Update Functions ---
+
+        window.showMessage = (text, type = 'success') => {
+            messageBox.textContent = text;
+            messageBox.className = 'p-3 mb-4 rounded-lg text-center font-semibold transition-all duration-300 shadow-md'; // Reset classes
+            messageBox.classList.remove('hidden');
+
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-800');
+            } else if (type === 'info') {
+                messageBox.classList.add('bg-blue-100', 'text-blue-800');
+            } else if (type === 'warning') {
+                messageBox.classList.add('bg-yellow-100', 'text-yellow-800');
+            }
+            // Hide after 3 seconds
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        };
+
+        window.updateStatsDisplay = () => {
+            const statsArea = document.getElementById('stats-area');
+            let html = '<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">';
+
+            // Ensure consistent order and colors
+            const gameOrder = ['wordle', 'mathdle', 'geogordle', 'capitdle'];
+            
+            gameOrder.forEach(key => {
+                if (window.gameStats[key]) {
+                    const stats = window.gameStats[key];
+                    const winRate = stats.played > 0 ? ((stats.wins / stats.played) * 100).toFixed(0) : 0;
+                    const titleMap = {
+                        wordle: 'Wordle', mathdle: 'Mathdle', capitdle: 'Capitdle', geogordle: 'Geogordle'
+                    };
+                    const colorMap = {
+                        wordle: 'text-indigo-600', mathdle: 'text-purple-600', capitdle: 'text-green-600', geogordle: 'text-yellow-700'
+                    };
+                    const title = titleMap[key] || key.toUpperCase(); 
+                    const color = colorMap[key] || 'text-gray-600';
+
+                    html += `
+                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-inner transition hover:shadow-md duration-200">
+                            <h4 class="font-extrabold text-base ${color} mb-1">${title}</h4>
+                            <p class="text-xs text-gray-600">Played: <span class="font-medium">${stats.played}</span></p>
+                            <p class="text-xs text-gray-600">Won: <span class="font-medium">${stats.wins}</span></p>
+                            <p class="text-xs text-gray-600">Rate: <span class="font-medium">${winRate}%</span></p>
+                        </div>
+                    `;
+                }
+            });
+            html += '</div>';
+            statsArea.innerHTML = `
+                <h3 class="text-xl font-bold text-gray-700 mb-4 border-b pb-2">Your Game Stats</h3>
+                ${html}
+            `;
+        };
+
+        // --- Game Manager ---
+
+        window.setGame = (gameType) => {
+            if (!games[gameType]) return;
+
+            // Reset UI
+            document.querySelectorAll('.game-selector-btn').forEach(btn => btn.classList.remove('ring-4', 'ring-offset-2', 'ring-white', 'shadow-inner'));
+            document.getElementById(`btn-${gameType}`).classList.add('ring-4', 'ring-offset-2', 'ring-white', 'shadow-inner'); 
+            document.getElementById('game-title').textContent = games[gameType].title;
+
+            window.gameState.activeGame = gameType;
+            window.gameState.currentGuess = 0;
+
+            // Initialize the game
+            games[gameType].init();
+            games[gameType].render();
+        };
+
+        window.checkGameEnd = (gameType, isWin) => {
+            const gameData = window.gameState[gameType];
+
+            // Save stats
+            window.saveStats(gameType, isWin);
+
+            if (isWin) {
+                showMessage(`🎉 You won ${games[gameType].title}! Starting a new game...`, 'success');
+            } else if (window.gameState.currentGuess >= window.gameState.maxGuesses) {
+                const answer = gameData.targetWord || gameData.targetEquation || gameData.answer;
+                showMessage(`😔 Game Over! The answer was: ${answer}. Starting a new game...`, 'error');
+            } else {
+                return; // Game continues
+            }
+
+            // Start a new game after a short delay
+            setTimeout(() => {
+                window.setGame(gameType);
+            }, 3500); // Increased delay for better message visibility
+        };
+
+        // --- Wordle Customization ---
+
+        window.setWordleLength = (length) => {
+            if (length === window.gameState.wordle.wordLength) return;
+            if (!WORD_LIST[length]) {
+                showMessage(`No word list available for ${length} letters.`, 'info');
+                return;
+            }
+            window.gameState.wordle.wordLength = length;
+            // Re-initialize and re-render the game with the new length
+            initWordle();
+            renderWordle();
+            showMessage(`Word length set to ${length}. New game started.`, 'info');
+        }
+
+        // --- Wordle Logic (Unchanged, uses form input) ---
+
+        function initWordle() {
+            const currentLength = window.gameState.wordle.wordLength;
+            const wordList = WORD_LIST[currentLength];
+            if (!wordList || wordList.length === 0) return;
+
+            window.gameState.wordle.targetWord = wordList[Math.floor(Math.random() * wordList.length)];
+            window.gameState.wordle.guesses = Array(window.gameState.maxGuesses).fill(null).map(() => 
+                Array(currentLength).fill({ char: '', status: '' })
+            );
+            window.gameState.currentGuess = 0;
+            console.log("Wordle target:", window.gameState.wordle.targetWord); 
+        }
+
+        function renderWordle() {
+            const wordleState = window.gameState.wordle;
+            const wordLength = wordleState.wordLength;
+
+            // Render Length Selector
+            let lengthSelector = `
+                <div class="flex items-center justify-center space-x-2 mb-6">
+                    <span class="font-semibold text-gray-700 text-sm sm:text-base">Word Length:</span>
+                    <button onclick="window.setWordleLength(4)" class="p-2 rounded-full w-9 h-9 sm:w-10 sm:h-10 font-bold text-sm transition ${wordLength === 4 ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">4</button>
+                    <button onclick="window.setWordleLength(5)" class="p-2 rounded-full w-9 h-9 sm:w-10 sm:h-10 font-bold text-sm transition ${wordLength === 5 ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">5</button>
+                    <button onclick="window.setWordleLength(6)" class="p-2 rounded-full w-9 h-9 sm:w-10 sm:h-10 font-bold text-sm transition ${wordLength === 6 ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">6</button>
+                </div>
+            `;
+            
+            // Render Grid
+            let gridHtml = lengthSelector;
+            gridHtml += '<div class="flex flex-col space-y-2">';
+            for (let r = 0; r < window.gameState.maxGuesses; r++) {
+                // Use justify-center and no space-x for dynamic sizing
+                gridHtml += '<div class="flex justify-center">'; 
+                for (let c = 0; c < wordLength; c++) {
+                    const cellData = wordleState.guesses[r][c];
+                    const char = cellData.char || '';
+                    const statusClass = cellData.status;
+
+                    const cellClasses = statusClass ? `game-grid-cell ${statusClass}` : 'game-grid-cell';
+
+                    gridHtml += `<div class="${cellClasses}" id="cell-wordle-${r}-${c}">${char}</div>`;
+                }
+                gridHtml += '</div>';
+            }
+            gridHtml += '</div>';
+            gameContainer.innerHTML = gridHtml;
+
+            // Render Input (Form-based)
+            inputSection.innerHTML = `
+                <form id="wordle-form" class="flex flex-col items-center w-full">
+                    <input type="text" id="wordle-input" maxlength="${wordLength}"
+                           class="w-full sm:w-2/3 p-4 text-center text-xl border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-indigo-500 focus:border-indigo-500 uppercase tracking-widest font-bold shadow-lg"
+                           placeholder="Enter ${wordLength} letters" required autocomplete="off" />
+                    <button type="submit" class="mt-5 w-full sm:w-2/3 p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition duration-150 shadow-xl transform hover:scale-[1.01]">
+                        Submit Guess
+                    </button>
+                </form>
+            `;
+            document.getElementById('wordle-form').onsubmit = (e) => {
+                e.preventDefault();
+                const guess = document.getElementById('wordle-input').value.toUpperCase();
+                submitWordle(guess);
+                document.getElementById('wordle-input').value = '';
+            };
+        }
+
+        function submitWordle(guess) {
+            const { targetWord } = window.gameState.wordle;
+            const currentGuess = window.gameState.currentGuess;
+            const wordLength = window.gameState.wordle.wordLength;
+
+            if (guess.length !== wordLength) {
+                showMessage(`Guess must be ${wordLength} letters long.`, 'info');
+                return;
+            }
+            if (currentGuess >= window.gameState.maxGuesses) return;
+
+            let guessArray = [];
+            let isWin = true;
+            const targetChars = targetWord.split(''); // Mutable copy
+
+            // Grading Logic (Standard Wordle)
+            // 1. First pass: find exact matches (correct)
+            for (let i = 0; i < wordLength; i++) {
+                const char = guess[i];
+                let status = 'absent';
+                if (char === targetChars[i]) {
+                    status = 'correct';
+                    targetChars[i] = null; // Mark as used
+                }
+                guessArray.push({ char, status });
+            }
+
+            // 2. Second pass: find letters present (yellow)
+            for (let i = 0; i < wordLength; i++) {
+                if (guessArray[i].status !== 'correct') {
+                    const char = guess[i];
+                    const targetIndex = targetChars.indexOf(char);
+                    if (targetIndex > -1) {
+                        guessArray[i].status = 'present';
+                        targetChars[targetIndex] = null; // Mark as used
+                    }
+                }
+                if (guessArray[i].status !== 'correct') {
+                    isWin = false;
+                }
+            }
+
+            // Sequential Animation and State Update
+            let animationDelay = 0;
+            const delayPerLetter = 400; 
+
+            for (let i = 0; i < wordLength; i++) {
+                (function(index, charData) {
+                    setTimeout(() => {
+                        const cell = document.getElementById(`cell-wordle-${currentGuess}-${index}`);
+                        if (cell) {
+                            cell.textContent = charData.char;
+                            cell.classList.add('flipping');
+
+                            setTimeout(() => {
+                                cell.classList.remove('flipping');
+                                cell.classList.remove('border-gray-300', 'border-gray-400');
+                                cell.classList.add(charData.status);
+                                window.gameState.wordle.guesses[currentGuess][index] = charData;
+                            }, delayPerLetter / 2);
+                        }
+
+                        if (index === wordLength - 1) {
+                            window.gameState.currentGuess++; 
+                            window.checkGameEnd('wordle', isWin);
+                        }
+                    }, animationDelay);
+                })(i, guessArray[i]);
+
+                animationDelay += delayPerLetter;
+            }
+        }
+
+        // --- Mathdle Logic (Unchanged, uses form input) ---
+
+        // Helper function to safely evaluate a mathematical expression
+        function evaluateExpression(expression) {
+            if (!/^[0-9+\-*\/=]+$/.test(expression)) return false;
+
+            const parts = expression.split('=');
+            if (parts.length !== 2) return false;
+
+            const left = parts[0];
+            const right = parts[1];
+
+            try {
+                const calculatedLeft = new Function('return ' + left)();
+                const calculatedRight = parseFloat(right);
+
+                if (!isFinite(calculatedLeft) || calculatedLeft !== calculatedRight) {
+                    return false;
+                }
+                
+                if (calculatedLeft < 0 || !Number.isInteger(calculatedLeft)) {
+                     return false;
+                }
+                
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        // NEW: Function to generate a correct equation of a specific length
+        function generateMathdleEquation(length) {
+            const ops = ['+', '-', '*'];
+            let equation = '';
+            const maxIterations = 1000;
+
+            // Simple heuristic for max digits based on length: 5->1-digit, 7->2-digits, 9->3-digits
+            const maxDigits = Math.floor((length - 3) / 2); 
+            const maxVal = 10 ** maxDigits; 
+
+            for (let i = 0; i < maxIterations; i++) {
+                const op = ops[Math.floor(Math.random() * ops.length)];
+                let A, B, C;
+
+                A = Math.floor(Math.random() * (maxVal * 0.9)) + 1;
+                B = Math.floor(Math.random() * (maxVal * 0.9)) + 1; 
+
+                if (op === '-') {
+                    if (A <= B) continue;
+                    C = A - B;
+                } else if (op === '*') {
+                    A = Math.floor(Math.random() * (maxVal / 5)) + 1;
+                    B = Math.floor(Math.random() * 9) + 1;
+                    C = A * B;
+                } else { // '+'
+                    C = A + B;
+                }
+
+                const potentialEquation = `${A}${op}${B}=${C}`;
+
+                if (potentialEquation.length === length && C > 0 && Number.isInteger(C)) {
+                    return potentialEquation;
+                }
+            }
+            // Fallback equations
+            return length === 5 ? '1+1=2' : length === 7 ? '10+1=11' : '100+1=101'; 
+        }
+        
+        // NEW: Setter for Mathdle Length
+        window.setMathdleLength = (length) => {
+            if (length === window.gameState.mathdle.equationLength) return;
+            if ([5, 7, 9].indexOf(length) === -1) {
+                showMessage(`Length ${length} is not supported. Use 5, 7, or 9.`, 'info');
+                return;
+            }
+            window.gameState.mathdle.equationLength = length;
+            // Re-initialize and re-render the game with the new length
+            initMathdle();
+            renderMathdle();
+            showMessage(`Equation length set to ${length}. New game started.`, 'info');
+        }
+
+
+        function initMathdle() {
+            const currentLength = window.gameState.mathdle.equationLength;
+            const problem = generateMathdleEquation(currentLength);
+            
+            window.gameState.mathdle.targetEquation = problem;
+            
+            window.gameState.mathdle.guesses = Array(window.gameState.maxGuesses).fill(null).map(() => 
+                Array(currentLength).fill({ char: '', status: '' })
+            );
+            window.gameState.currentGuess = 0;
+            console.log("Mathdle target:", window.gameState.mathdle.targetEquation); 
+        }
+
+        function renderMathdle() {
+            const mathdleState = window.gameState.mathdle;
+            const equationLength = mathdleState.equationLength;
+
+            // Render Length Selector
+            let lengthSelector = `
+                <div class="flex items-center justify-center space-x-2 mb-6">
+                    <span class="font-semibold text-gray-700 text-sm sm:text-base">Equation Length:</span>
+                    <button onclick="window.setMathdleLength(5)" class="p-2 rounded-full w-9 h-9 sm:w-10 sm:h-10 font-bold text-sm transition ${equationLength === 5 ? 'bg-purple-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">5</button>
+                    <button onclick="window.setMathdleLength(7)" class="p-2 rounded-full w-9 h-9 sm:w-10 sm:h-10 font-bold text-sm transition ${equationLength === 7 ? 'bg-purple-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">7</button>
+                    <button onclick="window.setMathdleLength(9)" class="p-2 rounded-full w-9 h-9 sm:w-10 sm:h-10 font-bold text-sm transition ${equationLength === 9 ? 'bg-purple-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">9</button>
+                </div>
+            `;
+
+
+            // Render Instructions and Grid
+            let gridHtml = lengthSelector;
+            gridHtml += `
+                <div class="text-lg sm:text-xl font-bold p-4 mb-4 bg-purple-50 text-purple-800 rounded-lg shadow-inner w-full text-center border-l-4 border-purple-500">
+                    Guess the ${equationLength}-character correct equation! (Numbers 0-9 and operators +-*/=)
+                </div>
+                <div class="text-sm text-gray-500 mb-4">Guess ${window.gameState.currentGuess + 1} of ${window.gameState.maxGuesses}</div>
+            `;
+            
+            // Render Grid
+            gridHtml += '<div class="flex flex-col space-y-2">';
+            for (let r = 0; r < window.gameState.maxGuesses; r++) {
+                gridHtml += '<div class="flex justify-center">';
+                for (let c = 0; c < equationLength; c++) {
+                    const cellData = mathdleState.guesses[r][c];
+                    const char = cellData.char || (r === window.gameState.currentGuess ? '' : '');
+                    const statusClass = cellData.status;
+
+                    const cellClasses = statusClass ? `game-grid-cell font-mono ${statusClass}` : 'game-grid-cell font-mono';
+
+                    gridHtml += `<div class="${cellClasses}" id="cell-mathdle-${r}-${c}">${char}</div>`;
+                }
+                gridHtml += '</div>';
+            }
+            gridHtml += '</div>';
+            gameContainer.innerHTML = gridHtml;
+
+            // Render Input (Form-based)
+            inputSection.innerHTML = `
+                <form id="mathdle-form" class="flex flex-col items-center w-full">
+                    <input type="text" id="mathdle-input" maxlength="${equationLength}"
+                           class="w-full sm:w-2/3 p-4 text-center text-xl border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-purple-500 focus:border-purple-500 uppercase tracking-widest font-bold shadow-lg font-mono"
+                           placeholder="Enter ${equationLength} characters" required autocomplete="off" />
+                    <button type="submit" class="mt-5 w-full sm:w-2/3 p-3 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition duration-150 shadow-xl transform hover:scale-[1.01]">
+                        Submit Equation
+                    </button>
+                </form>
+            `;
+            document.getElementById('mathdle-form').onsubmit = (e) => {
+                e.preventDefault();
+                const guess = document.getElementById('mathdle-input').value.toUpperCase().replace(/\s/g, '');
+                submitMathdle(guess);
+                document.getElementById('mathdle-input').value = '';
+            };
+        }
+
+        function submitMathdle(guess) {
+            const { targetEquation } = window.gameState.mathdle;
+            const currentGuess = window.gameState.currentGuess;
+            const equationLength = window.gameState.mathdle.equationLength;
+
+            if (guess.length !== equationLength) {
+                showMessage(`Equation must be exactly ${equationLength} characters long.`, 'info');
+                return;
+            }
+            if (currentGuess >= window.gameState.maxGuesses) return;
+            
+            if (!evaluateExpression(guess)) {
+                showMessage('That is not a mathematically correct equation. Try again!', 'error');
+                return;
+            }
+
+            let guessArray = [];
+            let isWin = true;
+            const targetChars = targetEquation.split(''); // Mutable copy
+
+            // Grading Logic (Wordle-style)
+            // 1. First pass: find exact matches (correct)
+            for (let i = 0; i < equationLength; i++) {
+                const char = guess[i];
+                let status = 'absent';
+                if (char === targetChars[i]) {
+                    status = 'correct';
+                    targetChars[i] = null; // Mark as used
+                }
+                guessArray.push({ char, status });
+            }
+
+            // 2. Second pass: find characters present (yellow)
+            for (let i = 0; i < equationLength; i++) {
+                if (guessArray[i].status !== 'correct') {
+                    const char = guess[i];
+                    const targetIndex = targetChars.indexOf(char);
+                    if (targetIndex > -1) {
+                        guessArray[i].status = 'present';
+                        targetChars[targetIndex] = null; // Mark as used
+                    }
+                }
+                if (guessArray[i].status !== 'correct') {
+                    isWin = false;
+                }
+            }
+
+            // Sequential Animation and State Update
+            let animationDelay = 0;
+            const delayPerLetter = 400; 
+
+            for (let i = 0; i < equationLength; i++) {
+                (function(index, charData) {
+                    setTimeout(() => {
+                        const cell = document.getElementById(`cell-mathdle-${currentGuess}-${index}`);
+                        if (cell) {
+                            cell.textContent = charData.char;
+                            cell.classList.add('flipping');
+
+                            setTimeout(() => {
+                                cell.classList.remove('flipping');
+                                cell.classList.remove('border-gray-300', 'border-gray-400');
+                                cell.classList.add(charData.status);
+                                window.gameState.mathdle.guesses[currentGuess][index] = charData;
+                            }, delayPerLetter / 2);
+                        }
+
+                        if (index === equationLength - 1) {
+                            window.gameState.currentGuess++; 
+                            window.checkGameEnd('mathdle', isWin);
+                        }
+                    }, animationDelay);
+                })(i, guessArray[i]);
+
+                animationDelay += delayPerLetter;
+            }
+        }
+
+        // --- Geogordle Logic (NEW) ---
+        
+        function initGeogordle() {
+            const word = GEOGRAPHY_WORDS[Math.floor(Math.random() * GEOGRAPHY_WORDS.length)];
+            const currentLength = word.length;
+
+            window.gameState.geogordle.targetWord = word;
+            window.gameState.geogordle.wordLength = currentLength;
+            window.gameState.geogordle.guesses = Array(window.gameState.maxGuesses).fill(null).map(() => 
+                Array(currentLength).fill({ char: '', status: '' })
+            );
+            window.gameState.geogordle.keyboardState = {}; // Reset keyboard colors
+            window.gameState.currentGuess = 0;
+            console.log("Geogordle target:", window.gameState.geogordle.targetWord); 
+            // Also add keyboard listener when starting this game
+            window.removeEventListener('keydown', window.handleGeogordleKeydown);
+            window.addEventListener('keydown', window.handleGeogordleKeydown);
+        }
+
+        function renderGeogordle() {
+            const geogordleState = window.gameState.geogordle;
+            const wordLength = geogordleState.wordLength;
+
+            // Render Instructions and Grid
+            let gridHtml = `
+                <div class="text-lg sm:text-xl font-bold p-4 mb-4 bg-yellow-50 text-yellow-800 rounded-lg shadow-inner w-full text-center border-l-4 border-yellow-500">
+                    Guess the ${wordLength}-character Geography word! (Word length is dynamic)
+                </div>
+                <div class="text-sm text-gray-500 mb-4">Guess ${window.gameState.currentGuess + 1} of ${window.gameState.maxGuesses}</div>
+            `;
+            
+            // Render Grid
+            gridHtml += '<div class="flex flex-col space-y-2">';
+            for (let r = 0; r < window.gameState.maxGuesses; r++) {
+                // Dynamically set grid columns using style attribute
+                gridHtml += `<div class="flex justify-center gap-1" style="grid-template-columns: repeat(${wordLength}, minmax(0, 1fr)); width: 100%;">`; 
+                for (let c = 0; c < wordLength; c++) {
+                    const cellData = geogordleState.guesses[r][c];
+                    const char = cellData.char || '';
+                    const statusClass = cellData.status;
+
+                    // Adjust styling to use gap and dynamic sizing
+                    const cellClasses = statusClass ? `game-grid-cell ${statusClass} flex-1` : 'game-grid-cell flex-1';
+
+                    gridHtml += `<div class="${cellClasses}" id="cell-geogordle-${r}-${c}">${char}</div>`;
+                }
+                gridHtml += '</div>';
+            }
+            gridHtml += '</div>';
+            gameContainer.innerHTML = gridHtml;
+
+            // Render Virtual Keyboard
+            const keyboardHtml = window.buildVirtualKeyboard('geogordle');
+            inputSection.innerHTML = keyboardHtml;
+            // Attach virtual keyboard listener
+            inputSection.querySelector('.keyboard-container').addEventListener('click', window.handleVirtualKeyClick);
+
+            // Apply existing keyboard colors
+            for(const letter in geogordleState.keyboardState) {
+                const status = geogordleState.keyboardState[letter];
+                const keyElement = inputSection.querySelector(`.keyboard-key[data-key="${letter}"]`);
+                if (keyElement) {
+                    keyElement.classList.add(`key-${status}`);
+                }
+            }
+        }
+
+        function submitGeogordle(guess) {
+            const { targetWord } = window.gameState.geogordle;
+            const currentGuess = window.gameState.currentGuess;
+            const wordLength = window.gameState.geogordle.wordLength;
+
+            if (guess.length !== wordLength) {
+                showMessage(`Guess must be ${wordLength} letters long.`, 'warning');
+                return;
+            }
+            if (currentGuess >= window.gameState.maxGuesses) return;
+
+            let guessArray = [];
+            let isWin = true;
+            const targetChars = targetWord.split(''); 
+
+            // Grading Logic (Standard Wordle)
+            for (let i = 0; i < wordLength; i++) {
+                const char = guess[i];
+                let status = 'absent';
+                if (char === targetChars[i]) {
+                    status = 'correct';
+                    targetChars[i] = null; // Mark as used
+                }
+                guessArray.push({ char, status });
+            }
+
+            for (let i = 0; i < wordLength; i++) {
+                if (guessArray[i].status !== 'correct') {
+                    const char = guess[i];
+                    const targetIndex = targetChars.indexOf(char);
+                    if (targetIndex > -1) {
+                        guessArray[i].status = 'present';
+                        targetChars[targetIndex] = null;
+                    }
+                }
+                if (guessArray[i].status !== 'correct') {
+                    isWin = false;
+                }
+            }
+
+            // Animation and State Update
+            let animationDelay = 0;
+            const delayPerLetter = 400; 
+
+            for (let i = 0; i < wordLength; i++) {
+                (function(index, charData) {
+                    setTimeout(() => {
+                        const cell = document.getElementById(`cell-geogordle-${currentGuess}-${index}`);
+                        if (cell) {
+                            cell.textContent = charData.char;
+                            cell.classList.add('flipping');
+                            window.updateKeyboardState(charData.char, charData.status, 'geogordle');
+
+                            setTimeout(() => {
+                                cell.classList.remove('flipping');
+                                cell.classList.remove('border-gray-300', 'border-gray-400');
+                                cell.classList.add(charData.status);
+                                window.gameState.geogordle.guesses[currentGuess][index] = charData;
+                            }, delayPerLetter / 2);
+                        }
+
+                        if (index === wordLength - 1) {
+                            window.gameState.currentGuess++; 
+                            window.checkGameEnd('geogordle', isWin);
+                        }
+                    }, animationDelay);
+                })(i, guessArray[i]);
+
+                animationDelay += delayPerLetter;
+            }
+            window.gameState.geogordle.currentGuess = '';
+        }
+
+        // --- Capitdle Logic (Unchanged, uses form input) ---
+
+        function initCapitdle() {
+            const cities = games.capitdle.data;
+            const item = cities[Math.floor(Math.random() * cities.length)];
+            window.gameState.capitdle.country = item.country;
+            window.gameState.capitdle.answer = item.capital.toUpperCase();
+            window.gameState.capitdle.guesses = [];
+            window.gameState.currentGuess = 0;
+            console.log("Capitdle target:", window.gameState.capitdle.answer);
+            window.removeEventListener('keydown', window.handleGeogordleKeydown);
+        }
+
+        function renderCapitdle() {
+            const capitdleState = window.gameState.capitdle;
+
+            // Render Questions/Guesses
+            let html = `
+                <div class="text-xl sm:text-2xl font-bold p-4 mb-4 bg-green-50 text-green-800 rounded-lg shadow-inner w-full text-center border-l-4 border-green-500">
+                    Which city is the capital of: <span class="font-extrabold">${capitdleState.country}</span> ?
+                </div>
+                <div class="text-sm text-gray-500 mb-4">Guess ${window.gameState.currentGuess + 1} of ${window.gameState.maxGuesses}</div>
+            `;
+            html += '<div class="flex flex-col space-y-3 w-full">';
+
+            for (let r = 0; r < window.gameState.maxGuesses; r++) {
+                const guess = capitdleState.guesses[r] || { value: '', status: '' };
+                const statusClass = guess.status === 'correct' ? 'bg-green-100 text-green-800 border-green-300 shadow-md' :
+                                    'bg-gray-100 text-gray-700 border-gray-300';
+                const statusText = guess.status === 'correct' ? 'CORRECT! ✅' : `Guess ${r + 1}`;
+                const displayValue = guess.value ? guess.value.toUpperCase() : '';
+
+                html += `
+                    <div class="flex items-center justify-between p-3 border rounded-lg transition duration-150 ${statusClass}">
+                        <span class="font-sans text-lg">${displayValue}</span>
+                        <span class="font-bold text-sm">${statusText}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            gameContainer.innerHTML = html;
+
+            // Render Input (Form-based)
+            inputSection.innerHTML = `
+                <form id="capitdle-form" class="flex flex-col items-center w-full">
+                    <input type="text" id="capitdle-input"
+                           class="w-full sm:w-2/3 p-4 text-center text-xl border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-green-500 focus:border-green-500 uppercase font-bold shadow-lg"
+                           placeholder="Enter capital city name" required autocomplete="off" />
+                    <button type="submit" class="mt-5 w-full sm:w-2/3 p-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition duration-150 shadow-xl transform hover:scale-[1.01]">
+                        Submit Capital
+                    </button>
+                </form>
+            `;
+            document.getElementById('capitdle-form').onsubmit = (e) => {
+                e.preventDefault();
+                const guess = document.getElementById('capitdle-input').value.toUpperCase().trim();
+                submitCapitdle(guess);
+                document.getElementById('capitdle-input').value = '';
+            };
+        }
+
+        function submitCapitdle(guess) {
+            const { answer } = window.gameState.capitdle;
+            const currentGuess = window.gameState.currentGuess;
+            let status = '';
+            let isWin = false;
+
+            if (guess === answer) {
+                status = 'correct';
+                isWin = true;
+            } else {
+                status = 'incorrect';
+            }
+
+            // Store the result
+            window.gameState.capitdle.guesses[currentGuess] = { value: guess, status: status };
+            window.gameState.currentGuess++;
+
+            renderCapitdle();
+            window.checkGameEnd('capitdle', isWin);
+        }
+
+        // --- Shared Keyboard Logic (For Geogordle) ---
+
+        /**
+         * Builds the HTML for the virtual keyboard.
+         */
+        window.buildVirtualKeyboard = (gameType) => {
+            const row1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
+            const row2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+            const row3 = ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE'];
+
+            const keyboardLayout = [row1, row2, row3];
+            const gameColor = gameType === 'geogordle' ? 'bg-yellow-600' : 'bg-indigo-600';
+
+            let html = '<div class="keyboard-container w-full max-w-md bg-white p-3 rounded-xl shadow-lg mt-8">';
+            
+            keyboardLayout.forEach((row, index) => {
+                let rowClasses = 'flex justify-center mb-1';
+                if (index === 1) rowClasses += ' pl-4'; // Offset for middle row
+
+                html += `<div class="${rowClasses}">`;
+                row.forEach(key => {
+                    let keyClasses = 'keyboard-key mx-0.5';
+                    let style = '';
+                    if (key === 'ENTER' || key === 'BACKSPACE') {
+                        keyClasses += ` ${gameColor} text-white`;
+                        style = 'flex-grow: 1.5;';
+                    }
+
+                    html += `<button class="${keyClasses}" data-key="${key}" style="${style}">${key === 'BACKSPACE' ? '⌫' : key}</button>`;
+                });
+                html += '</div>';
+            });
+
+            html += '</div>';
+            return html;
+        };
+
+        /**
+         * Updates the color of a key on the virtual keyboard based on the feedback.
+         */
+        window.updateKeyboardState = (letter, result, gameType) => {
+            const state = window.gameState[gameType].keyboardState;
+            
+            // Define color priority (higher number is better)
+            const priority = { 'absent': 1, 'present': 2, 'correct': 3 };
+            const currentPriority = priority[state[letter]] || 0;
+            const newPriority = priority[result];
+
+            if (newPriority > currentPriority) {
+                state[letter] = result;
+            }
+            
+            // Render the color change immediately on the virtual keyboard
+            const keyElement = inputSection.querySelector(`.keyboard-key[data-key="${letter}"]`);
+            if (keyElement) {
+                // Remove existing color classes
+                keyElement.classList.remove('key-absent', 'key-present', 'key-correct');
+                // Apply the new color class based on the highest priority stored
+                keyElement.classList.add(`key-${state[letter]}`);
+                // Ensure Enter/Backspace retain their color if not a letter key
+                if (letter !== 'ENTER' && letter !== 'BACKSPACE') {
+                   keyElement.classList.remove('bg-gray-300'); // Ensure default is removed for colored keys
+                }
+            }
+        };
+
+        /**
+         * Handles virtual keyboard click for Geogordle
+         */
+        window.handleVirtualKeyClick = (e) => {
+            const keyButton = e.target.closest('.keyboard-key');
+            if (keyButton) {
+                const key = keyButton.dataset.key;
+                window.handleGeogordleInput(key);
+            }
+        };
+
+        /**
+         * Handles both physical and virtual input for Geogordle
+         */
+        window.handleGeogordleInput = (key) => {
+            if (window.gameState.activeGame !== 'geogordle' || window.gameOver) return;
+
+            key = key.toUpperCase();
+            let geogordleState = window.gameState.geogordle;
+            let currentGuess = geogordleState.currentGuess || '';
+            const wordLength = geogordleState.wordLength;
+
+            if (key === 'ENTER') {
+                if (currentGuess.length === wordLength) {
+                    submitGeogordle(currentGuess);
+                } else {
+                    showMessage(`Word must be ${wordLength} letters long.`, 'info');
+                }
+            } else if (key === 'BACKSPACE') {
+                geogordleState.currentGuess = currentGuess.slice(0, -1);
+                window.updateGeogordleRowDisplay();
+            } else if (key.length === 1 && key.match(VALID_LETTERS) && currentGuess.length < wordLength) {
+                geogordleState.currentGuess += key;
+                window.updateGeogordleRowDisplay();
+            }
+        }
+        
+        /**
+         * Physical keyboard listener mapped to Geogordle only when active
+         */
+        window.handleGeogordleKeydown = (e) => {
+            if (window.gameState.activeGame === 'geogordle') {
+                const key = e.key.toUpperCase();
+                if (key === 'ENTER' || key === 'RETURN') {
+                    window.handleGeogordleInput('ENTER');
+                } else if (key === 'BACKSPACE') {
+                    window.handleGeogordleInput('BACKSPACE');
+                } else if (key.length === 1 && key.match(VALID_LETTERS)) {
+                    window.handleGeogordleInput(key);
+                }
+            }
+        };
+
+        /**
+         * Updates the visual display of the current Geogordle guess row.
+         */
+        window.updateGeogordleRowDisplay = () => {
+            const geogordleState = window.gameState.geogordle;
+            const currentGuessIndex = window.gameState.currentGuess;
+            const currentGuess = geogordleState.currentGuess;
+            const wordLength = geogordleState.wordLength;
+
+            const row = gameContainer.querySelector(`#cell-geogordle-${currentGuessIndex}-0`).parentNode;
+            
+            for (let i = 0; i < wordLength; i++) {
+                const cell = row.children[i];
+                cell.textContent = i < currentGuess.length ? currentGuess[i] : '';
+                
+                // Add/remove a simple visual indicator for filling
+                if (i < currentGuess.length) {
+                    cell.classList.add('bg-gray-200');
+                } else {
+                    cell.classList.remove('bg-gray-200');
+                }
+            }
+        }
+
+
+        // --- Initial Load ---
+
+        // Set the default game on load if not already set (will be called after Firebase init)
+        window.addEventListener('load', () => {
+            if (typeof window.initializeFirebase === 'function') {
+                const checkAuth = setInterval(() => {
+                    if (window.isAuthReady) {
+                        clearInterval(checkAuth);
+                        window.updateStatsDisplay(); 
+                        window.setGame('geogordle'); // Start with Geogordle as the latest addition
+                    }
+                }, 100);
+            } else {
+                 window.setGame('geogordle');
+            }
+            
+            // Initialize keyboard state for Geogordle
+            window.gameState.geogordle.keyboardState = {};
+            // Attach the generic keydown handler to manage input for Geogordle
+            window.addEventListener('keydown', window.handleGeogordleKeydown);
+        });
+
+        // Initialize default stats display immediately
+        window.updateStatsDisplay();
+
+    </script>
 </body>
 </html>
